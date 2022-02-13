@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+{% load static %}
+<html style="height:100%">
+<head>
+    <meta charset="UTF-8">
+    <title>visulization3D</title>
+    <link rel="stylesheet" href={% static "layui/css/layui.css" %}>
+    <script type="text/javascript" src={% static "js/jquery-3.6.0.min.js" %}></script>
+    <script type="text/javascript" src={% static "js/echarts_3D.min.js" %}></script>
+    <script type="text/javascript" src={% static "js/echarts-gl.min.js" %}></script>
+    <script type="text/javascript" src={% static "js/world.js" %}></script>
+    <script type="text/javascript" src={% static "js/util.js" %}></script>
+    <script type="text/javascript" src={% static "layui/layui.js" %}></script>
+</head>
+<body style="height:98%; width:100%" onresize="resizeFresh()">
+    <div style="width:100%; height:100%; margin-left: auto">
+        <div id="head" style="width:100%; height:15%">
+            <h1 align="center" style="margin: 10px">战略经济对抗平台</h1>
+        </div>
+        <div class="layui-btn-container" style="position: fixed; z-index: 0; top: 10%; left: 25%">
+            <button id="select_line0" class="layui-btn layui-btn-primary" style="margin-bottom: 0">
+                国家关联关系<i class="layui-icon layui-icon-down layui-font-12"></i>
+            </button>
+        </div>
+        <form class="layui-form layui-form-pane" autocomplete="off" style="position: fixed; z-index: 0; top: 10%; right: 15%">
+                <div class="layui-form-item" style="display: flex">
+                    <label class="layui-form-label" style="width: 250px; text-align: right; border-style: none; background-color: unset">国家</label>
+                    <div class="layui-input-block" style="margin-left: 0; margin-right: 50px">
+                        <div class="layui-input" style="display: flex">
+                            <div class="layui-slider-input-txt">
+                                <input id="search" type="text" placeholder="请选择" style="width: 100px">
+                            </div>
+                            <div class="layui-form-item" style="margin-left: 10px">
+                                <button id="search_bt" type="button" class="layui-btn layui-btn-primary" style="padding: 0 10px; height: 38px">
+                                    <i class="layui-icon layui-icon-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        <div id="earth" style="height:85%"></div>
+
+        <div style="width:25%; height:40%; position: fixed; z-index: 0; bottom: 3%; left: 0">
+            <div class="layui-btn-container" style="height:15%">
+                <button id="select_line3" class="layui-btn layui-btn-primary">
+                    对目标国出口额占总出口额比重(%)<i class="layui-icon layui-icon-down layui-font-12"></i>
+                </button>
+            </div>
+            <div id="china2" class="chart-container" style="height:85%"></div>
+        </div>
+        <div style="width:25%; height:40%; position: fixed; z-index: 0; bottom: 3%; right: 0">
+            <div class="layui-btn-container" style="height:15%">
+                <button id="select_line4" class="layui-btn layui-btn-primary">对目标国出口额占总出口额比重(%)</button>
+            </div>
+            <div id="foreign2" class="chart-container" style="height:85%"></div>
+        </div>
+    </div>
+    <script>
+        //窗口大小变化时候，进行刷新页面操作，防止样式混乱
+        var x=window.innerWidth;
+        function resizeFresh(){
+            if(x!==window.innerWidth)
+                location.reload();
+        }
+        var country_list = {{ country_list|safe }}
+        var relation_country = {{ relation_country|safe }}
+        var relation_list = {{ relation_list|safe }}
+        var relation_foreign_list = {{ relation_foreign_list|safe }}
+
+        var map = echarts.init(document.createElement('canvas'), 'white', {width: 4096, height: 2048, renderer: 'canvas'});
+        var mapOption = {
+            "animation": true,
+            "animationThreshold": 2000,
+            "animationDuration": 1000,
+            "animationEasing": "cubicOut",
+            "animationDelay": 50,
+            "animationDurationUpdate": 300,
+            "animationEasingUpdate": "cubicOut",
+            "animationDelayUpdate": 50,
+            "color": [
+                "#c23531",
+                "#2f4554",
+                "#61a0a8",
+                "#d48265",
+                "#749f83",
+                "#ca8622",
+                "#bda29a",
+                "#6e7074",
+                "#546570",
+                "#c4ccd3",
+                "#f05b72",
+                "#ef5b9c",
+                "#f47920",
+                "#905a3d",
+                "#fab27b",
+                "#2a5caa",
+                "#444693",
+                "#726930",
+                "#b2d235",
+                "#6d8346",
+                "#ac6767",
+                "#1d953f",
+                "#6950a1",
+                "#918597"
+            ],
+            "series": [
+                {
+                    "type": "map",
+                    "name": "World Economy",
+                    "label": {
+                        "show": false,
+                        "position": "top",
+                        "margin": 8,
+                        "textStyle": {
+                            "fontSize": 30,
+                            "fontWeight": 'normal',
+                            "color": 'red'
+                        }
+                    },
+                    "mapType": "world",
+                    "nameMap": nameMap,
+                    "roam": false,
+                    "aspectScale": 0.75,
+                    "nameProperty": "name",
+                    "selectedMode": false,
+                    "zoom": 1,
+                    "mapValueCalculation": "sum",
+                    "showLegendSymbol": false,
+                    "emphasis": {}
+                }
+            ],
+            "legend": [
+                {
+                    "data": [
+                        "World Population"
+                    ],
+                    "selected": {
+                        "World Population": true
+                    },
+                    "show": true,
+                    "padding": 5,
+                    "itemGap": 10,
+                    "itemWidth": 25,
+                    "itemHeight": 14
+                }
+            ],
+            "tooltip": {
+                "show": true,
+                "trigger": "item",
+                "triggerOn": "mousemove|click",
+                "axisPointer": {
+                    "type": "line"
+                },
+                "showContent": true,
+                "alwaysShowContent": false,
+                "showDelay": 0,
+                "hideDelay": 100,
+                "textStyle": {
+                    "fontSize": 14
+                },
+                "borderWidth": 0,
+                "padding": 5
+            },
+            "visualMap": {
+                "show": true,
+                "type": "continuous",
+                "min": 799,
+                "max": 1420062022,
+                "text": [
+                    "max",
+                    "min"
+                ],
+                "inRange": {
+                    "color": [
+                        "lightskyblue",
+                        "yellow",
+                        "orangered"
+                    ]
+                },
+                "calculable": true,
+                "inverse": false,
+                "splitNumber": 5,
+                "orient": "vertical",
+                "showLabel": true,
+                "itemWidth": 20,
+                "itemHeight": 140,
+                "borderWidth": 0
+            },
+            "title": [
+                {
+                    "padding": 5,
+                    "itemGap": 10
+                }
+            ],
+            "backgroundColor": 'rgb(20,104,121,0.71)'
+        };
+        map.setOption(mapOption);
+
+		var earth = echarts.init(document.getElementById('earth'), 'white', {renderer: 'canvas'});
+		var earthOption = {
+            "globe": {
+                "show": true,
+                "baseTexture": map,
+                "shading": 'lambert',
+                "light": {
+                    ambient: {
+                        intensity: 0.6
+                    },
+                    main: {
+                        intensity: 0.2
+                    }
+                }
+            },
+            "series": [
+                {
+                    "type": 'lines3D',
+                    "coordinateSystem": 'globe',
+                    "blendMode": 'source-over',
+                    "effect": {     //尾迹特效
+                        "show": true,
+                        "period": 5
+                    },
+                    "lineStyle": {  //3D飞线图
+                        "width": 1,
+                        "color": 'rgb(255,0,0)',
+                        "opacity": 1,
+                        "trailWidth": 5,
+                        "trailLength": 0.01,
+                    },
+                    "data": [
+                        {
+                            "coords": [
+                                [80.5, 23],   // 起点的经纬度和海拔坐标
+                                [-76.5, 25],   // 终点的经纬度和海拔坐标
+                            ],
+                            "value": 100
+                        },
+                        [
+                            [80.5, 23],
+                            [103, -42]
+                        ],
+                        [
+                            [80.5, 23],
+                            [-40, -28]
+                        ],
+                        [
+                            [80.5, 23],
+                            [2, 34]
+                        ],
+                        [
+                            [80.5, 23],
+                            [8, 38]
+                        ],
+                        [
+                            [80.5, 23],
+                            [62, 8]
+                        ],
+                        [
+                            [80.5, 23],
+                            [10.2, 29]
+                        ],
+                        [
+                            [80.5, 23],
+                            [107, 23]
+                        ],
+                        [
+                            [80.5, 23],
+                            [98, 26.5]
+                        ],
+                        [
+                            [80.5, 23],
+                            [4.5, 39.5]
+                        ],
+                        [
+                            [80.5, 23],
+                            [78, 47.5]
+                        ],
+                        [
+                            [80.5, 23],
+                            [-2, 41]
+                        ]
+                    ]
+                },
+                {
+                    "type": 'lines3D',
+                    "coordinateSystem": 'globe',
+                    "blendMode": 'source-over',
+                    "effect": {
+                        "show": true,
+                        "period": 5
+                    },
+                    "lineStyle": {
+                        "width": 1,
+                        "color": 'rgb(0,111,255)',
+                        "opacity": 1,
+                        "trailWidth": 4,
+                        "trailLength": 0.01,
+                    },
+                    "data": [
+                        {
+                            "coords": [
+                                [-76.5, 25],   // 起点的经纬度和海拔坐标
+                                [80.5, 23],   // 终点的经纬度和海拔坐标
+                            ],
+                            "value": 100
+                        },
+                        [
+                            [103, -42],
+                            [80.5, 23]
+                        ],
+                        [
+                            [-40, -28],
+                            [80.5, 23]
+                        ],
+                        [
+                            [2, 34],
+                            [80.5, 23]
+                        ],
+                        [
+                            [8, 38],
+                            [80.5, 23]
+                        ],
+                        [
+                            [62, 8],
+                            [80.5, 23]
+                        ],
+                        [
+                            [10.2, 29],
+                            [80.5, 23]
+                        ],
+                        [
+                            [107, 23],
+                            [80.5, 23]
+                        ],
+                        [
+                            [98, 26.5],
+                            [80.5, 23]
+                        ],
+                        [
+                            [4.5, 39.5],
+                            [80.5, 23]
+                        ],
+                        [
+                            [78, 47.5],
+                            [80.5, 23]
+                        ],
+                        [
+                            [-2, 41],
+                            [80.5, 23]
+                        ]
+                    ]
+                }
+            ]
+        };
+		earth.setOption(earthOption);
+
+        var china_name = country_list[1]
+        var relation_data = relation_list[relation_country.indexOf("美国")][0]
+        var china2 = echarts.init(document.getElementById('china2'), 'white', {renderer: 'canvas'});
+        var option_china2 = {
+            "baseOption": {
+                "series": [
+                    {
+                        "type": "bar",
+                        "name": china_name,
+                        "data": relation_data,
+                        "label": {
+                            "show": false,
+                            "position": "top",
+                            "margin": 8
+                        }
+                    }
+                ],
+                "timeline": {
+                    "axisType": "category",
+                    "orient": "horizontal",
+                    "autoPlay": false,
+                    "controlPosition": "left",
+                    "loop": true,
+                    "rewind": false,
+                    "show": false,
+                    "inverse": false,
+                    "left": "null",
+                    "right": "0",
+                    "top": "20",
+                    "bottom": "20",
+                    "width": "500",
+                    "triggerEvent": true,
+                    "label": {
+                        "show": true,
+                        "position": "top",
+                        "color": "#fff",
+                        "margin": 8
+                    },
+                    "data": country_list
+                },
+                "grid": [
+                    {
+                        "show": false,
+                        "zlevel": 0,
+                        "z": 2,
+                        "left": 50,
+                        "right": 10,
+                        "top": 20,
+                        "bottom": 60,
+                        "containLabel": false,
+                        "backgroundColor": "transparent",
+                        "borderColor": "#ccc",
+                        "borderWidth": 1
+                    }
+                ],
+                "xAxis": [
+                    {
+                        "show": true,
+                        "scale": false,
+                        "type": 'category',
+                        "data": [
+                            2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                            2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                        ]
+                    }
+                ],
+                "yAxis": [
+                    {
+                        "show": true,
+                        "scale": false,
+                        "type": 'value'
+                    }
+                ],
+                "dataZoom": [
+                    {
+                        "type": 'slider',
+                        "start": 75,
+                        "end": 100,
+                        "bottom": 10,
+                        "height" : 25
+                    }
+                ]
+            },
+            "options": [
+                {
+                    "tooltip": {
+                        "show": true,
+                        "trigger": "item",
+                        "triggerOn": "mousemove|click",
+                        "axisPointer": {
+                            "type": "line"
+                        },
+                        "showContent": true,
+                        "alwaysShowContent": false,
+                        "showDelay": 0,
+                        "hideDelay": 100,
+                        "textStyle": {
+                            "fontSize": 14
+                        },
+                        "borderWidth": 0,
+                        "padding": 5
+                    },
+                    "color": [
+                        "#c23531",
+                        "#2f4554",
+                        "#61a0a8",
+                        "#d48265",
+                        "#749f83",
+                        "#ca8622",
+                        "#bda29a",
+                        "#6e7074",
+                        "#546570",
+                        "#c4ccd3",
+                        "#f05b72",
+                        "#ef5b9c",
+                        "#f47920",
+                        "#905a3d",
+                        "#fab27b",
+                        "#2a5caa",
+                        "#444693",
+                        "#726930",
+                        "#b2d235",
+                        "#6d8346",
+                        "#ac6767",
+                        "#1d953f",
+                        "#6950a1",
+                        "#918597"
+                    ]
+                }
+            ]
+        };
+        china2.setOption(option_china2);
+
+        var foreign_name = country_list[0]
+        var relation_foreign_data = relation_foreign_list[relation_country.indexOf("美国")][0]
+        var foreign2 = echarts.init(document.getElementById('foreign2'), 'white', {renderer: 'canvas'});
+        var option_foreign2 = {
+            "baseOption": {
+                "series": [
+                    {
+                        "type": "bar",
+                        "name": foreign_name,
+                        "data": relation_foreign_data,
+                        "label": {
+                            "show": false,
+                            "position": "top",
+                            "margin": 8
+                        }
+                    }
+                ],
+                "timeline": {
+                    "axisType": "category",
+                    "orient": "horizontal",
+                    "autoPlay": false,
+                    "controlPosition": "left",
+                    "loop": true,
+                    "rewind": false,
+                    "show": false,
+                    "inverse": false,
+                    "left": "null",
+                    "right": "0",
+                    "top": "20",
+                    "bottom": "20",
+                    "width": "500",
+                    "triggerEvent": true,
+                    "label": {
+                        "show": true,
+                        "position": "top",
+                        "color": "#fff",
+                        "margin": 8
+                    },
+                    "data": country_list
+                },
+                "grid": [
+                    {
+                        "show": false,
+                        "zlevel": 0,
+                        "z": 2,
+                        "left": 50,
+                        "right": 10,
+                        "top": 20,
+                        "bottom": 60,
+                        "containLabel": false,
+                        "backgroundColor": "transparent",
+                        "borderColor": "#ccc",
+                        "borderWidth": 1
+                    }
+                ],
+                "xAxis": [
+                    {
+                        "show": true,
+                        "scale": false,
+                        "type": 'category',
+                        "data": [
+                            2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                            2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                        ]
+                    }
+                ],
+                "yAxis": [
+                    {
+                        "show": true,
+                        "scale": false,
+                        "type": 'value'
+                    }
+                ],
+                "dataZoom": [
+                    {
+                        "type": 'slider',
+                        "start": 75,
+                        "end": 100,
+                        "bottom": 10,
+                        "height" : 25
+                    }
+                ]
+            },
+            "options": [
+                {
+                    "tooltip": {
+                        "show": true,
+                        "trigger": "item",
+                        "triggerOn": "mousemove|click",
+                        "axisPointer": {
+                            "type": "line"
+                        },
+                        "showContent": true,
+                        "alwaysShowContent": false,
+                        "showDelay": 0,
+                        "hideDelay": 100,
+                        "textStyle": {
+                            "fontSize": 14
+                        },
+                        "borderWidth": 0,
+                        "padding": 5
+                    },
+                    "color": [
+                        "#c23531",
+                        "#2f4554",
+                        "#61a0a8",
+                        "#d48265",
+                        "#749f83",
+                        "#ca8622",
+                        "#bda29a",
+                        "#6e7074",
+                        "#546570",
+                        "#c4ccd3",
+                        "#f05b72",
+                        "#ef5b9c",
+                        "#f47920",
+                        "#905a3d",
+                        "#fab27b",
+                        "#2a5caa",
+                        "#444693",
+                        "#726930",
+                        "#b2d235",
+                        "#6d8346",
+                        "#ac6767",
+                        "#1d953f",
+                        "#6950a1",
+                        "#918597"
+                    ]
+                }
+            ]
+        };
+        foreign2.setOption(option_foreign2);
+
+        var index = 0
+        var selected = "美国"
+        map.on("click",function(param){
+            selected = param.name
+        })
+
+        earth.getZr().on('dblclick', function() {
+            index = country_list.indexOf(selected)
+            $.ajax({
+                url : "/select_Country_with_relation/",
+                type : "POST",
+                data : {
+                    'name': selected,
+                    'relation': document.getElementById("select_line3").innerText
+                },
+                success: function (result) {
+                    var obj = jQuery.parseJSON(result)
+                    if(!obj.error) {
+                        $('#search').val(selected);
+                        var china2 = echarts.init(document.getElementById('china2'), 'white', {renderer: 'canvas'});
+                        var option_china2 = {
+                            "baseOption": {
+                                "series": [
+                                    {
+                                        "type": "bar",
+                                        "name": china_name,
+                                        "data": obj.china_data,
+                                        "label": {
+                                            "show": false,
+                                            "position": "top",
+                                            "margin": 8
+                                        }
+                                    }
+                                ],
+                                "timeline": {
+                                    "axisType": "category",
+                                    "orient": "horizontal",
+                                    "autoPlay": false,
+                                    "controlPosition": "left",
+                                    "loop": true,
+                                    "rewind": false,
+                                    "show": false,
+                                    "inverse": false,
+                                    "left": "null",
+                                    "right": "0",
+                                    "top": "20",
+                                    "bottom": "20",
+                                    "width": "500",
+                                    "triggerEvent": true,
+                                    "label": {
+                                        "show": true,
+                                        "position": "top",
+                                        "color": "#fff",
+                                        "margin": 8
+                                    },
+                                    "data": country_list
+                                },
+                                "grid": [
+                                    {
+                                        "show": false,
+                                        "zlevel": 0,
+                                        "z": 2,
+                                        "left": 50,
+                                        "right": 10,
+                                        "top": 20,
+                                        "bottom": 60,
+                                        "containLabel": false,
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "#ccc",
+                                        "borderWidth": 1
+                                    }
+                                ],
+                                "xAxis": [
+                                    {
+                                        "show": true,
+                                        "scale": false,
+                                        "type": 'category',
+                                        "data": [
+                                            2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                                            2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                                        ]
+                                    }
+                                ],
+                                "yAxis": [
+                                    {
+                                        "show": true,
+                                        "scale": false,
+                                        "type": 'value'
+                                    }
+                                ],
+                                "dataZoom": [
+                                    {
+                                        "type": 'slider',
+                                        "start": 75,
+                                        "end": 100,
+                                        "bottom": 10,
+                                        "height" : 25
+                                    }
+                                ]
+                            },
+                            "options": [
+                                {
+                                    "tooltip": {
+                                        "show": true,
+                                        "trigger": "item",
+                                        "triggerOn": "mousemove|click",
+                                        "axisPointer": {
+                                            "type": "line"
+                                        },
+                                        "showContent": true,
+                                        "alwaysShowContent": false,
+                                        "showDelay": 0,
+                                        "hideDelay": 100,
+                                        "textStyle": {
+                                            "fontSize": 14
+                                        },
+                                        "borderWidth": 0,
+                                        "padding": 5
+                                    },
+                                    "color": [
+                                        "#c23531",
+                                        "#2f4554",
+                                        "#61a0a8",
+                                        "#d48265",
+                                        "#749f83",
+                                        "#ca8622",
+                                        "#bda29a",
+                                        "#6e7074",
+                                        "#546570",
+                                        "#c4ccd3",
+                                        "#f05b72",
+                                        "#ef5b9c",
+                                        "#f47920",
+                                        "#905a3d",
+                                        "#fab27b",
+                                        "#2a5caa",
+                                        "#444693",
+                                        "#726930",
+                                        "#b2d235",
+                                        "#6d8346",
+                                        "#ac6767",
+                                        "#1d953f",
+                                        "#6950a1",
+                                        "#918597"
+                                    ]
+                                }
+                            ]
+                        };
+                        china2.setOption(option_china2);
+                        china2.resize();
+
+                        var foreign2 = echarts.init(document.getElementById('foreign2'), 'white', {renderer: 'canvas'});
+                        var option_foreign2 = {
+                            "baseOption": {
+                                "series": [
+                                    {
+                                        "type": "bar",
+                                        "name": selected,
+                                        "data": obj.foreign_data,
+                                        "label": {
+                                            "show": false,
+                                            "position": "top",
+                                            "margin": 8
+                                        }
+                                    }
+                                ],
+                                "timeline": {
+                                    "axisType": "category",
+                                    "orient": "horizontal",
+                                    "autoPlay": false,
+                                    "controlPosition": "left",
+                                    "loop": true,
+                                    "rewind": false,
+                                    "show": false,
+                                    "inverse": false,
+                                    "left": "null",
+                                    "right": "0",
+                                    "top": "20",
+                                    "bottom": "20",
+                                    "width": "500",
+                                    "triggerEvent": true,
+                                    "label": {
+                                        "show": true,
+                                        "position": "top",
+                                        "color": "#fff",
+                                        "margin": 8
+                                    },
+                                    "data": country_list
+                                },
+                                "grid": [
+                                    {
+                                        "show": false,
+                                        "zlevel": 0,
+                                        "z": 2,
+                                        "left": 50,
+                                        "right": 10,
+                                        "top": 20,
+                                        "bottom": 60,
+                                        "containLabel": false,
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "#ccc",
+                                        "borderWidth": 1
+                                    }
+                                ],
+                                "xAxis": [
+                                    {
+                                        "show": true,
+                                        "scale": false,
+                                        "type": 'category',
+                                        "data": [
+                                            2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                                            2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                                        ]
+                                    }
+                                ],
+                                "yAxis": [
+                                    {
+                                        "show": true,
+                                        "scale": false,
+                                        "type": 'value'
+                                    }
+                                ],
+                                "dataZoom": [
+                                    {
+                                        "type": 'slider',
+                                        "start": 75,
+                                        "end": 100,
+                                        "bottom": 10,
+                                        "height" : 25
+                                    }
+                                ]
+                            },
+                            "options": [
+                                {
+                                    "tooltip": {
+                                        "show": true,
+                                        "trigger": "item",
+                                        "triggerOn": "mousemove|click",
+                                        "axisPointer": {
+                                            "type": "line"
+                                        },
+                                        "showContent": true,
+                                        "alwaysShowContent": false,
+                                        "showDelay": 0,
+                                        "hideDelay": 100,
+                                        "textStyle": {
+                                            "fontSize": 14
+                                        },
+                                        "borderWidth": 0,
+                                        "padding": 5
+                                    },
+                                    "color": [
+                                        "#c23531",
+                                        "#2f4554",
+                                        "#61a0a8",
+                                        "#d48265",
+                                        "#749f83",
+                                        "#ca8622",
+                                        "#bda29a",
+                                        "#6e7074",
+                                        "#546570",
+                                        "#c4ccd3",
+                                        "#f05b72",
+                                        "#ef5b9c",
+                                        "#f47920",
+                                        "#905a3d",
+                                        "#fab27b",
+                                        "#2a5caa",
+                                        "#444693",
+                                        "#726930",
+                                        "#b2d235",
+                                        "#6d8346",
+                                        "#ac6767",
+                                        "#1d953f",
+                                        "#6950a1",
+                                        "#918597"
+                                    ]
+                                }
+                            ]
+                        };
+                        foreign2.setOption(option_foreign2);
+                        foreign2.resize();
+                    }
+                }
+            });
+        });
+
+        $('#search_bt').on('click', function () {
+            selected = $('#search').val()
+            index = country_list.indexOf(selected)
+            $.ajax({
+                url : "/select_Country_with_relation/",
+                type : "POST",
+                data : {
+                    'name': selected,
+                    'relation': document.getElementById("select_line3").innerText
+                },
+                success: function (result) {
+                    var obj = jQuery.parseJSON(result)
+                    if(obj.error) {
+                        return
+                    }
+                    var china2 = echarts.init(document.getElementById('china2'), 'white', {renderer: 'canvas'});
+                    var option_china2 = {
+                        "baseOption": {
+                            "series": [
+                                {
+                                    "type": "bar",
+                                    "name": china_name,
+                                    "data": obj.china_data,
+                                    "label": {
+                                        "show": false,
+                                        "position": "top",
+                                        "margin": 8
+                                    }
+                                }
+                            ],
+                            "timeline": {
+                                "axisType": "category",
+                                "orient": "horizontal",
+                                "autoPlay": false,
+                                "controlPosition": "left",
+                                "loop": true,
+                                "rewind": false,
+                                "show": false,
+                                "inverse": false,
+                                "left": "null",
+                                "right": "0",
+                                "top": "20",
+                                "bottom": "20",
+                                "width": "500",
+                                "triggerEvent": true,
+                                "label": {
+                                    "show": true,
+                                    "position": "top",
+                                    "color": "#fff",
+                                    "margin": 8
+                                },
+                                "data": country_list
+                            },
+                            "grid": [
+                                {
+                                    "show": false,
+                                    "zlevel": 0,
+                                    "z": 2,
+                                    "left": 50,
+                                    "right": 10,
+                                    "top": 20,
+                                    "bottom": 60,
+                                    "containLabel": false,
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#ccc",
+                                    "borderWidth": 1
+                                }
+                            ],
+                            "xAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "type": 'category',
+                                    "data": [
+                                        2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                                        2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                                    ]
+                                }
+                            ],
+                            "yAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "type": 'value'
+                                }
+                            ],
+                            "dataZoom": [
+                                {
+                                    "type": 'slider',
+                                    "start": 75,
+                                    "end": 100,
+                                    "bottom": 10,
+                                    "height" : 25
+                                }
+                            ]
+                        },
+                        "options": [
+                            {
+                                "tooltip": {
+                                    "show": true,
+                                    "trigger": "item",
+                                    "triggerOn": "mousemove|click",
+                                    "axisPointer": {
+                                        "type": "line"
+                                    },
+                                    "showContent": true,
+                                    "alwaysShowContent": false,
+                                    "showDelay": 0,
+                                    "hideDelay": 100,
+                                    "textStyle": {
+                                        "fontSize": 14
+                                    },
+                                    "borderWidth": 0,
+                                    "padding": 5
+                                },
+                                "color": [
+                                    "#c23531",
+                                    "#2f4554",
+                                    "#61a0a8",
+                                    "#d48265",
+                                    "#749f83",
+                                    "#ca8622",
+                                    "#bda29a",
+                                    "#6e7074",
+                                    "#546570",
+                                    "#c4ccd3",
+                                    "#f05b72",
+                                    "#ef5b9c",
+                                    "#f47920",
+                                    "#905a3d",
+                                    "#fab27b",
+                                    "#2a5caa",
+                                    "#444693",
+                                    "#726930",
+                                    "#b2d235",
+                                    "#6d8346",
+                                    "#ac6767",
+                                    "#1d953f",
+                                    "#6950a1",
+                                    "#918597"
+                                ]
+                            }
+                        ]
+                    };
+                    china2.setOption(option_china2);
+                    china2.resize();
+
+                    var foreign2 = echarts.init(document.getElementById('foreign2'), 'white', {renderer: 'canvas'});
+                    var option_foreign2 = {
+                        "baseOption": {
+                            "series": [
+                                {
+                                    "type": "bar",
+                                    "name": selected,
+                                    "data": obj.foreign_data,
+                                    "label": {
+                                        "show": false,
+                                        "position": "top",
+                                        "margin": 8
+                                    }
+                                }
+                            ],
+                            "timeline": {
+                                "axisType": "category",
+                                "orient": "horizontal",
+                                "autoPlay": false,
+                                "controlPosition": "left",
+                                "loop": true,
+                                "rewind": false,
+                                "show": false,
+                                "inverse": false,
+                                "left": "null",
+                                "right": "0",
+                                "top": "20",
+                                "bottom": "20",
+                                "width": "500",
+                                "triggerEvent": true,
+                                "label": {
+                                    "show": true,
+                                    "position": "top",
+                                    "color": "#fff",
+                                    "margin": 8
+                                },
+                                "data": country_list
+                            },
+                            "grid": [
+                                {
+                                    "show": false,
+                                    "zlevel": 0,
+                                    "z": 2,
+                                    "left": 50,
+                                    "right": 10,
+                                    "top": 20,
+                                    "bottom": 60,
+                                    "containLabel": false,
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#ccc",
+                                    "borderWidth": 1
+                                }
+                            ],
+                            "xAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "type": 'category',
+                                    "data": [
+                                        2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                                        2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                                    ]
+                                }
+                            ],
+                            "yAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "type": 'value'
+                                }
+                            ],
+                            "dataZoom": [
+                                {
+                                    "type": 'slider',
+                                    "start": 75,
+                                    "end": 100,
+                                    "bottom": 10,
+                                    "height" : 25
+                                }
+                            ]
+                        },
+                        "options": [
+                            {
+                                "tooltip": {
+                                    "show": true,
+                                    "trigger": "item",
+                                    "triggerOn": "mousemove|click",
+                                    "axisPointer": {
+                                        "type": "line"
+                                    },
+                                    "showContent": true,
+                                    "alwaysShowContent": false,
+                                    "showDelay": 0,
+                                    "hideDelay": 100,
+                                    "textStyle": {
+                                        "fontSize": 14
+                                    },
+                                    "borderWidth": 0,
+                                    "padding": 5
+                                },
+                                "color": [
+                                    "#c23531",
+                                    "#2f4554",
+                                    "#61a0a8",
+                                    "#d48265",
+                                    "#749f83",
+                                    "#ca8622",
+                                    "#bda29a",
+                                    "#6e7074",
+                                    "#546570",
+                                    "#c4ccd3",
+                                    "#f05b72",
+                                    "#ef5b9c",
+                                    "#f47920",
+                                    "#905a3d",
+                                    "#fab27b",
+                                    "#2a5caa",
+                                    "#444693",
+                                    "#726930",
+                                    "#b2d235",
+                                    "#6d8346",
+                                    "#ac6767",
+                                    "#1d953f",
+                                    "#6950a1",
+                                    "#918597"
+                                ]
+                            }
+                        ]
+                    };
+                    foreign2.setOption(option_foreign2);
+                    foreign2.resize();
+                }
+            });
+        })
+
+        layui.use(['dropdown'], function() {
+            var dropdown = layui.dropdown;
+            dropdown.render({
+                elem: '#select_line0',
+                trigger: 'mousedown',
+                data: [
+                    {
+                        id: '../',
+                        title: '总览',
+                    }, {
+                        id: '../map1',
+                        title: '宏观经济数据',
+                    }, {
+                        id: '../map2',
+                        title: '政策波动性',
+                    }, {
+                        id: '../map3D',
+                        title: '国家关联关系',
+                    }, {
+                        id: '../aid',
+                        title: '对外援助',
+                    }
+                ],
+                click: function(param) {
+                    window.location.href = param.id;
+                }
+            });
+        });
+
+        layui.use(['dropdown'], function() {
+            var dropdown = layui.dropdown;
+            dropdown.render({
+                elem: '#select_line3',
+                trigger: 'mousedown',
+                data: [
+                {
+                    title: '贸易',
+                    child: [{
+                        id: '对目标国出口额占总出口额比重(%)',
+                        title: '对目标国出口额占总出口额比重(%)'
+                    }, {
+                        id: '对目标国进口额占总进口额比重(%)',
+                        title: '对目标国进口额占总进口额比重(%)'
+                    }]
+                }, {
+                    title: '投资',
+                        child: [{
+                        id: '对目标国直接投资占GDP比重(%)',
+                        title: '对目标国直接投资占GDP比重(%)'
+                    }, {
+                        id: '目标国直接投资占GDP比重(%)',
+                        title: '目标国直接投资占GDP比重(%)'
+                    }]
+                }],
+                click: function(param) {
+                    document.getElementById("select_line3").innerHTML = param.title + '<i class="layui-icon layui-icon-down layui-font-12"></i>';
+                    document.getElementById("select_line4").innerHTML = param.title;
+                    $.ajax({
+                        url : "/select_Country_with_relation/",
+                        type : "POST",
+                        data : {
+                            'name': selected,
+                            'relation': param.id
+                        },
+                        success: function (result) {  //获取后台处理后传过来的result
+                            var obj = jQuery.parseJSON(result)
+                            if(obj.error) {
+                                alert(selected)
+                                return
+                            }
+                            var china_data = obj.china_data
+                            var foreign_data = obj.foreign_data
+                            var china2 = echarts.init(document.getElementById('china2'), 'white', {renderer: 'canvas'});
+                            var option_china2 = {
+                                "baseOption": {
+                                    "series": [
+                                        {
+                                            "type": "bar",
+                                            "name": china_name,
+                                            "data": china_data,
+                                            "label": {
+                                                "show": false,
+                                                "position": "top",
+                                                "margin": 8
+                                            }
+                                        }
+                                    ],
+                                    "timeline": {
+                    "axisType": "category",
+                    "orient": "horizontal",
+                    "autoPlay": false,
+                    "controlPosition": "left",
+                    "loop": true,
+                    "rewind": false,
+                    "show": false,
+                    "inverse": false,
+                    "left": "null",
+                    "right": "0",
+                    "top": "20",
+                    "bottom": "20",
+                    "width": "500",
+                    "triggerEvent": true,
+                    "label": {
+                        "show": true,
+                        "position": "top",
+                        "color": "#fff",
+                        "margin": 8
+                    },
+                    "data": country_list
+                },
+                                    "grid": [
+                                        {
+                                            "show": false,
+                                            "zlevel": 0,
+                                            "z": 2,
+                                            "left": 50,
+                                            "right": 10,
+                                            "top": 20,
+                                            "bottom": 60,
+                                            "containLabel": false,
+                                            "backgroundColor": "transparent",
+                                            "borderColor": "#ccc",
+                                            "borderWidth": 1
+                                        }
+                                    ],
+                                    "xAxis": [
+                                        {
+                                            "show": true,
+                                            "scale": false,
+                                            "type": 'category',
+                                            "data": [
+                                                2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                                                2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                                            ]
+                                        }
+                                    ],
+                                    "yAxis": [
+                                        {
+                                            "show": true,
+                                            "scale": false,
+                                            "type": 'value'
+                                        }
+                                    ],
+                                    "dataZoom": [
+                                        {
+                                            "type": 'slider',
+                                            "start": 75,
+                                            "end": 100,
+                                            "bottom": 10,
+                                            "height" : 25
+                                        }
+                                    ]
+                                },
+                                "options": [
+                                    {
+                                        "tooltip": {
+                                            "show": true,
+                                            "trigger": "item",
+                                            "triggerOn": "mousemove|click",
+                                            "axisPointer": {
+                                                "type": "line"
+                                            },
+                                            "showContent": true,
+                                            "alwaysShowContent": false,
+                                            "showDelay": 0,
+                                            "hideDelay": 100,
+                                            "textStyle": {
+                                                "fontSize": 14
+                                            },
+                                            "borderWidth": 0,
+                                            "padding": 5
+                                        },
+                                        "color": [
+                                            "#c23531",
+                                            "#2f4554",
+                                            "#61a0a8",
+                                            "#d48265",
+                                            "#749f83",
+                                            "#ca8622",
+                                            "#bda29a",
+                                            "#6e7074",
+                                            "#546570",
+                                            "#c4ccd3",
+                                            "#f05b72",
+                                            "#ef5b9c",
+                                            "#f47920",
+                                            "#905a3d",
+                                            "#fab27b",
+                                            "#2a5caa",
+                                            "#444693",
+                                            "#726930",
+                                            "#b2d235",
+                                            "#6d8346",
+                                            "#ac6767",
+                                            "#1d953f",
+                                            "#6950a1",
+                                            "#918597"
+                                        ]
+                                    }
+                                ]
+                            };
+                            china2.setOption(option_china2);
+                            china2.resize();
+
+                            var foreign2 = echarts.init(document.getElementById('foreign2'), 'white', {renderer: 'canvas'});
+                            var foreign_option2 = {
+                                "baseOption": {
+                                    "series": [
+                                        {
+                                            "type": "bar",
+                                            "name": selected,
+                                            "data": foreign_data,
+                                            "label": {
+                                                "show": false,
+                                                "position": "top",
+                                                "margin": 8
+                                            }
+                                        }
+                                    ],
+                                    "timeline": {
+                    "axisType": "category",
+                    "orient": "horizontal",
+                    "autoPlay": false,
+                    "controlPosition": "left",
+                    "loop": true,
+                    "rewind": false,
+                    "show": false,
+                    "inverse": false,
+                    "left": "null",
+                    "right": "0",
+                    "top": "20",
+                    "bottom": "20",
+                    "width": "500",
+                    "triggerEvent": true,
+                    "label": {
+                        "show": true,
+                        "position": "top",
+                        "color": "#fff",
+                        "margin": 8
+                    },
+                    "data": country_list
+                },
+                                    "grid": [
+                                        {
+                                            "show": false,
+                                            "zlevel": 0,
+                                            "z": 2,
+                                            "left": 50,
+                                            "right": 10,
+                                            "top": 20,
+                                            "bottom": 60,
+                                            "containLabel": false,
+                                            "backgroundColor": "transparent",
+                                            "borderColor": "#ccc",
+                                            "borderWidth": 1
+                                        }
+                                    ],
+                                    "xAxis": [
+                                        {
+                                            "show": true,
+                                            "scale": false,
+                                            "type": 'category',
+                                            "data": [
+                                                2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                                                2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                                            ]
+                                        }
+                                    ],
+                                    "yAxis": [
+                                        {
+                                            "show": true,
+                                            "scale": false,
+                                            "type": 'value'
+                                        }
+                                    ],
+                                    "dataZoom": [
+                                        {
+                                            "type": 'slider',
+                                            "start": 75,
+                                            "end": 100,
+                                            "bottom": 10,
+                                            "height": 25
+                                        }
+                                    ]
+                                },
+                                "options": [
+                                    {
+                                        "tooltip": {
+                                            "show": true,
+                                            "trigger": "item",
+                                            "triggerOn": "mousemove|click",
+                                            "axisPointer": {
+                                                "type": "line"
+                                            },
+                                            "showContent": true,
+                                            "alwaysShowContent": false,
+                                            "showDelay": 0,
+                                            "hideDelay": 100,
+                                            "textStyle": {
+                                                "fontSize": 14
+                                            },
+                                            "borderWidth": 0,
+                                            "padding": 5
+                                        },
+                                        "color": [
+                                            "#c23531",
+                                            "#2f4554",
+                                            "#61a0a8",
+                                            "#d48265",
+                                            "#749f83",
+                                            "#ca8622",
+                                            "#bda29a",
+                                            "#6e7074",
+                                            "#546570",
+                                            "#c4ccd3",
+                                            "#f05b72",
+                                            "#ef5b9c",
+                                            "#f47920",
+                                            "#905a3d",
+                                            "#fab27b",
+                                            "#2a5caa",
+                                            "#444693",
+                                            "#726930",
+                                            "#b2d235",
+                                            "#6d8346",
+                                            "#ac6767",
+                                            "#1d953f",
+                                            "#6950a1",
+                                            "#918597"
+                                        ]
+                                    }
+                                ]
+                            };
+                            foreign2.setOption(foreign_option2);
+                            foreign2.resize();
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+    <script>
+	     //窗口大小变化时候，进行刷新页面操作，防止样式混乱
+         var x=window.innerWidth;
+         function resizeFresh(){
+             if(x!==window.innerWidth)
+                 location.reload();
+         }
+	</script>
+</body>
+</html>

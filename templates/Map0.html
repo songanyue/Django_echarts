@@ -1,0 +1,3723 @@
+<!DOCTYPE html>
+{% load static %}
+<html style="height:100%">
+<head>
+    <meta charset="UTF-8">
+    <title>visualization</title>
+    <link rel="stylesheet" href={% static "layui/css/layui.css" %}>
+    <script type="text/javascript" src={% static "js/jquery-3.6.0.min.js" %}></script>
+    <script type="text/javascript" src={% static "js/echarts.min.js" %}></script>
+    <script type="text/javascript" src={% static "js/world.js" %}></script>
+    <script type="text/javascript" src={% static "js/util.js" %}></script>
+    <script type="text/javascript" src={% static "layui/layui.js" %}></script>
+</head>
+<style type="text/CSS">
+    .layui-button {
+        height: 3px;
+        line-height: unset;
+    }
+</style>
+<body style="height:98%; width:100%; display: flex" onresize="resizeFresh()">
+    <div style="width:25%; height:100%; position: relative">
+        <div id="china3" class="chart-container" style="height:30%"></div>
+        <div class="layui-btn-container" style="height:6%">
+            <button id="select_line3" class="layui-btn layui-btn-primary" style="margin-bottom: 0">
+                对目标国出口额占总出口额比重(%)<i class="layui-icon layui-icon-down layui-font-12"></i>
+            </button>
+        </div>
+        <div id="china2" class="chart-container" style="height:28%"></div>
+        <div class="layui-btn-container" style="height:6%">
+            <button id="select_line" class="layui-btn layui-btn-primary" style="margin-bottom: 0">
+                GDP(亿美元)<i class="layui-icon layui-icon-down layui-font-12"></i>
+            </button>
+        </div>
+        <div id="china" class="chart-container" style="height:30%"></div>
+    </div>
+    <div style="width:50%; height:100%">
+        <div style="height:10%">
+            <h1 align="center">战略经济对抗平台</h1>
+            <div style="display: flex">
+                <div class="layui-btn-container" style="margin-left: auto">
+                    <button id="select_line0" class="layui-btn layui-btn-primary" style="margin-bottom: 0">
+                        总览<i class="layui-icon layui-icon-down layui-font-12"></i>
+                    </button>
+                </div>
+                <form class="layui-form layui-form-pane" autocomplete="off" style="margin-left: auto">
+                    <div class="layui-form-item" style="display: flex">
+                        <label class="layui-form-label" style="width: 250px; text-align: right; border-style: none; background-color: unset">国家：</label>
+                        <div class="layui-input-block" style="margin-left: 0; margin-right: 50px">
+                            <div class="layui-input" style="display: flex">
+                                <div class="layui-slider-input-txt">
+                                    <input id="search" type="text" placeholder="请选择" style="width: 100px">
+                                </div>
+                                <div class="layui-form-item" style="margin-left: 10px">
+                                    <button id="search_bt" type="button" class="layui-btn layui-btn-primary" style="padding: 0 10px; height: 38px">
+                                        <i class="layui-icon layui-icon-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="world" class="chart-container" style="height:60%; margin-bottom: 10px"></div>
+        <div id="parameter" style="height:30%">
+            <div class="layui-form-item" style="display: flex">
+                <label class="layui-form-label" style="text-align: center; padding-right: 0; padding-left: 10px">预期GDP</label>
+                <div class="layui-input-block" style="display: flex; margin-left: 0">
+                    <input id="output1" type="text" readonly="true" autocomplete="off" class="layui-input" style="width:80px">
+                    <div class="layui-form-mid layui-word-aux">%</div>
+                </div>
+                <label class="layui-form-label" style="text-align: center; padding-right: 0; padding-left: 10px">预期CPI&nbsp;</label>
+                <div class="layui-input-block" style="display: flex; margin-left: 0">
+                    <input id="output2" type="text" readonly="true" autocomplete="off" class="layui-input" style="width:80px">
+                    <div class="layui-form-mid layui-word-aux">%</div>
+                </div>
+            </div>
+            <form class="layui-form layui-form-pane" autocomplete="off">
+                <div class="layui-form-item" style="display: flex">
+                    <label class="layui-form-label" style="width: 100px; padding-right: 0; border-style: none; background-color: unset">投资增长率</label>
+                    <div class="layui-input-block" style="margin-left: 0; margin-right: 70px">
+                        <div class="layui-input" style="width: 70px; height: 32px; position: absolute">
+                            <div class="layui-slider-input-txt">
+                                <input id="tune0" type="text" value=6 style="width: 50px">
+                            </div>
+                            <div class="layui-slider-input-btn" style="border-right: 1px solid #eee">
+                                <i id="up0" class="layui-icon layui-icon-up"></i>
+                                <i id="down0" class="layui-icon layui-icon-down"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-form-mid layui-word-aux">%</div>
+                    <label class="layui-form-label" style="width: 100px; padding-right: 0; padding-left:0; border-style: none; background-color: unset">消费增长率</label>
+                    <div class="layui-input-block" style="margin-left: 0; margin-right: 70px">
+                        <div class="layui-input" style="width: 70px; height: 32px; position: absolute">
+                            <div class="layui-slider-input-txt">
+                                <input id="tune1" type="text" value=6 style="width: 50px">
+                            </div>
+                            <div class="layui-slider-input-btn" style="border-right: 1px solid #eee">
+                                <i id="up1" class="layui-icon layui-icon-up"></i>
+                                <i id="down1" class="layui-icon layui-icon-down"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-form-mid layui-word-aux">%</div>
+                    <label class="layui-form-label" style="width: 100px; padding-right: 0; padding-left:0; border-style: none; background-color: unset">进口增长率</label>
+                    <div class="layui-input-block" style="margin-left: 0; margin-right: 70px">
+                        <div class="layui-input" style="width: 70px; height: 32px; position: absolute">
+                            <div class="layui-slider-input-txt">
+                                <input id="tune2" type="text" value=6 style="width: 50px">
+                            </div>
+                            <div class="layui-slider-input-btn" style="border-right: 1px solid #eee">
+                                <i id="up2" class="layui-icon layui-icon-up"></i>
+                                <i id="down2" class="layui-icon layui-icon-down"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-form-mid layui-word-aux">%</div>
+                </div>
+                <div class="layui-form-item" style="display: flex">
+                    <label class="layui-form-label" style="width: 100px; padding-right: 0; border-style: none; background-color: unset">出口增长率</label>
+                    <div class="layui-input-block" style="margin-left: 0; margin-right: 70px">
+                        <div class="layui-input" style="width: 70px; height: 32px; position: absolute">
+                            <div class="layui-slider-input-txt">
+                                <input id="tune3" type="text" value=6 style="width: 50px">
+                            </div>
+                            <div class="layui-slider-input-btn" style="border-right: 1px solid #eee">
+                                <i id="up3" class="layui-icon layui-icon-up"></i>
+                                <i id="down3" class="layui-icon layui-icon-down"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-form-mid layui-word-aux">%</div>
+                    <label class="layui-form-label" style="width: 100px; padding-right: 0; padding-left:0; border-style: none; background-color: unset">政府开支增长率</label>
+                    <div class="layui-input-block" style="margin-left: 0; margin-right: 70px">
+                        <div class="layui-input" style="width: 70px; height: 32px; position: absolute">
+                            <div class="layui-slider-input-txt">
+                                <input id="tune4" type="text" value=6 style="width: 50px">
+                            </div>
+                            <div class="layui-slider-input-btn" style="border-right: 1px solid #eee">
+                                <i id="up4" class="layui-icon layui-icon-up"></i>
+                                <i id="down4" class="layui-icon layui-icon-down"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-form-mid layui-word-aux">%</div>
+
+                    <div class="layui-form-item" style="margin-left: 30px">
+                        <button id="tune" type="button" class="layui-btn layui-btn-primary">提交</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div style="width:25%; height:100%">
+        <div id="foreign3" class="chart-container" style="height:30%"></div>
+        <div class="layui-btn-container" style="height:6%">
+            <button id="select_line4" class="layui-btn layui-btn-primary">对目标国出口额占总出口额比重(%)</button>
+        </div>
+        <div id="foreign2" class="chart-container" style="height:28%"></div>
+        <div class="layui-btn-container" style="height:6%">
+            <button id="select_line2" class="layui-btn layui-btn-primary">GDP(亿美元)</button>
+        </div>
+        <div id="foreign" class="chart-container" style="height:30%"></div>
+    </div>
+
+    <script>
+        //窗口大小变化时候，进行刷新页面操作，防止样式混乱
+        var x=window.innerWidth;
+        function resizeFresh(){
+            if(x!==window.innerWidth)
+                location.reload();
+        }
+        var country_list = {{ country_list|safe }}
+        var GDP_list = {{ GDP_list|safe }}
+        var EPU_country = {{ EPU_country|safe }}
+        var EPU_list = {{ EPU_list|safe }}
+        var relation_country = {{ relation_country|safe }}
+        var relation_list = {{ relation_list|safe }}
+        var relation_foreign_list = {{ relation_foreign_list|safe }}
+
+        function findKey(obj, value, compare = (a, b) => a === b) {
+            return Object.keys(obj).find(k => compare(obj[k], value))
+        }
+
+        var china_name = country_list[1]
+        var china_data = GDP_list[1]
+        var china = echarts.init(document.getElementById('china'), 'white', {renderer: 'canvas'});
+        var option_china = {
+            "baseOption": {
+                "series": [
+                    {
+                        "type": "line",
+                        "name": china_name,
+                        "connectNulls": false,
+                        "xAxisIndex": 0,
+                        "yAxisIndex": 0,
+                        "symbolSize": 4,
+                        "showSymbol": true,
+                        "smooth": false,
+                        "clip": true,
+                        "step": false,
+                        "data": china_data,
+                        "hoverAnimation": true,
+                        "label": {
+                            "show": false,
+                            "position": "top",
+                            "margin": 8
+                        },
+                        "lineStyle": {
+                            "show": true,
+                            "width": 1,
+                            "opacity": 1,
+                            "curveness": 0,
+                            "type": "solid"
+                        },
+                        "areaStyle": {
+                            "opacity": 0
+                        },
+                        "zlevel": 0,
+                        "z": 0
+                    }
+                ],
+                "timeline": {
+                    "axisType": "category",
+                    "orient": "horizontal",
+                    "autoPlay": false,
+                    "controlPosition": "left",
+                    "loop": true,
+                    "rewind": false,
+                    "show": false,
+                    "inverse": false,
+                    "left": "null",
+                    "right": "0",
+                    "top": "20",
+                    "bottom": "20",
+                    "width": "500",
+                    "triggerEvent": true,
+                    "label": {
+                        "show": true,
+                        "position": "top",
+                        "color": "#fff",
+                        "margin": 8
+                    },
+                    "data": country_list
+                },
+                "grid": [
+                    {
+                        "show": false,
+                        "zlevel": 0,
+                        "z": 2,
+                        "left": 50,
+                        "right": 10,
+                        "top": 20,
+                        "bottom": 45,
+                        "containLabel": false,
+                        "backgroundColor": "transparent",
+                        "borderColor": "#ccc",
+                        "borderWidth": 1
+                    }
+                ],
+                "xAxis": [
+                    {
+                        "type": "category",
+                        "show": true,
+                        "scale": false,
+                        "nameLocation": "end",
+                        "nameGap": 15,
+                        "gridIndex": 0,
+                        "inverse": false,
+                        "offset": 0,
+                        "splitNumber": 5,
+                        "minInterval": 0,
+                        "splitLine": {
+                            "show": false,
+                            "lineStyle": {
+                                "show": true,
+                                "width": 1,
+                                "opacity": 1,
+                                "curveness": 0,
+                                "type": "solid"
+                            }
+                        },
+                        "data": china_data.map(function (item) {
+                            return item[0]
+                        })
+                    }
+                ],
+                "yAxis": [
+                    {
+                        "show": true,
+                        "scale": false,
+                        "nameLocation": "end",
+                        "nameGap": 15,
+                        "gridIndex": 0,
+                        "inverse": false,
+                        "offset": 0,
+                        "splitNumber": 5,
+                        "minInterval": 0,
+                        "splitLine": {
+                            "show": true,
+                            "lineStyle": {
+                                "show": true,
+                                "width": 1,
+                                "opacity": 1,
+                                "curveness": 0,
+                                "type": "solid"
+                            }
+                        }
+                    }
+                ],
+                "dataZoom": [
+                    {
+                        "type": 'slider',
+                        "start": 75,
+                        "end": 100,
+                        "bottom": 0,
+                        "height" : 25
+                    }
+                ]
+            },
+            "options": [
+                {
+                    "legend": [
+                        {
+                            "data": [
+                                china_name
+                            ],
+                            "selected": {
+                                china_name: true
+                            },
+                            "show": true,
+                            "left": "46%",
+                            "top": "0%",
+                            "padding": 0,
+                            "itemGap": 10,
+                            "itemWidth": 25,
+                            "itemHeight": 14
+                        }
+                    ],
+                    "tooltip": {
+                        "show": true,
+                        "trigger": "item",
+                        "triggerOn": "mousemove|click",
+                        "axisPointer": {
+                            "type": "line"
+                        },
+                        "showContent": true,
+                        "alwaysShowContent": false,
+                        "showDelay": 0,
+                        "hideDelay": 100,
+                        "textStyle": {
+                            "fontSize": 14
+                        },
+                        "borderWidth": 0,
+                        "padding": 5
+                    },
+                    "color": [
+                        "#c23531",
+                        "#2f4554",
+                        "#61a0a8",
+                        "#d48265",
+                        "#749f83",
+                        "#ca8622",
+                        "#bda29a",
+                        "#6e7074",
+                        "#546570",
+                        "#c4ccd3",
+                        "#f05b72",
+                        "#ef5b9c",
+                        "#f47920",
+                        "#905a3d",
+                        "#fab27b",
+                        "#2a5caa",
+                        "#444693",
+                        "#726930",
+                        "#b2d235",
+                        "#6d8346",
+                        "#ac6767",
+                        "#1d953f",
+                        "#6950a1",
+                        "#918597"
+                    ]
+                }
+            ]
+        };
+        china.setOption(option_china);
+
+        var relation_data = relation_list[relation_country.indexOf("美国")][0]
+        var china2 = echarts.init(document.getElementById('china2'), 'white', {renderer: 'canvas'});
+        var option_china2 = {
+            "baseOption": {
+                "series": [
+                    {
+                        "type": "bar",
+                        "name": china_name,
+                        "data": relation_data,
+                        "label": {
+                            "show": false,
+                            "position": "top",
+                            "margin": 8
+                        }
+                    }
+                ],
+                "timeline": {
+                    "axisType": "category",
+                    "orient": "horizontal",
+                    "autoPlay": false,
+                    "controlPosition": "left",
+                    "loop": true,
+                    "rewind": false,
+                    "show": false,
+                    "inverse": false,
+                    "left": "null",
+                    "right": "0",
+                    "top": "20",
+                    "bottom": "20",
+                    "width": "500",
+                    "triggerEvent": true,
+                    "label": {
+                        "show": true,
+                        "position": "top",
+                        "color": "#fff",
+                        "margin": 8
+                    },
+                    "data": country_list
+                },
+                "grid": [
+                    {
+                        "show": false,
+                        "zlevel": 0,
+                        "z": 2,
+                        "left": 50,
+                        "right": 10,
+                        "top": 20,
+                        "bottom": 45,
+                        "containLabel": false,
+                        "backgroundColor": "transparent",
+                        "borderColor": "#ccc",
+                        "borderWidth": 1
+                    }
+                ],
+                "xAxis": [
+                    {
+                        "show": true,
+                        "scale": false,
+                        "type": 'category',
+                        "data": [
+                            2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                            2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                        ]
+                    }
+                ],
+                "yAxis": [
+                    {
+                        "show": true,
+                        "scale": false,
+                        "type": 'value'
+                    }
+                ],
+                "dataZoom": [
+                    {
+                        "type": 'slider',
+                        "start": 75,
+                        "end": 100,
+                        "bottom": 0,
+                        "height" : 25
+                    }
+                ]
+            },
+            "options": [
+                {
+                    "tooltip": {
+                        "show": true,
+                        "trigger": "item",
+                        "triggerOn": "mousemove|click",
+                        "axisPointer": {
+                            "type": "line"
+                        },
+                        "showContent": true,
+                        "alwaysShowContent": false,
+                        "showDelay": 0,
+                        "hideDelay": 100,
+                        "textStyle": {
+                            "fontSize": 14
+                        },
+                        "borderWidth": 0,
+                        "padding": 5
+                    },
+                    "color": [
+                        "#c23531",
+                        "#2f4554",
+                        "#61a0a8",
+                        "#d48265",
+                        "#749f83",
+                        "#ca8622",
+                        "#bda29a",
+                        "#6e7074",
+                        "#546570",
+                        "#c4ccd3",
+                        "#f05b72",
+                        "#ef5b9c",
+                        "#f47920",
+                        "#905a3d",
+                        "#fab27b",
+                        "#2a5caa",
+                        "#444693",
+                        "#726930",
+                        "#b2d235",
+                        "#6d8346",
+                        "#ac6767",
+                        "#1d953f",
+                        "#6950a1",
+                        "#918597"
+                    ]
+                }
+            ]
+        };
+        china2.setOption(option_china2);
+
+        var china3 = echarts.init(document.getElementById('china3'), 'white', {renderer: 'canvas'});
+        var epu_china = EPU_country.indexOf("China")
+        var option_china3 = {
+            "baseOption": {
+                "series": [
+                    {
+                        "type": "line",
+                        "name": china_name,
+                        "connectNulls": false,
+                        "xAxisIndex": 0,
+                        "yAxisIndex": 0,
+                        "symbolSize": 4,
+                        "showSymbol": true,
+                        "smooth": false,
+                        "clip": true,
+                        "step": false,
+                        "data": EPU_list[epu_china],
+                        "hoverAnimation": true,
+                        "label": {
+                            "show": false,
+                            "position": "top",
+                            "margin": 8
+                        },
+                        "lineStyle": {
+                            "show": true,
+                            "width": 1,
+                            "opacity": 1,
+                            "curveness": 0,
+                            "type": "solid"
+                        },
+                        "areaStyle": {
+                            "opacity": 0
+                        },
+                        "zlevel": 0,
+                        "z": 0
+                    },
+                    {
+                        "type": "line",
+                        "name": "EPU_ppp",
+                        "connectNulls": false,
+                        "xAxisIndex": 0,
+                        "yAxisIndex": 0,
+                        "symbolSize": 4,
+                        "showSymbol": true,
+                        "smooth": false,
+                        "clip": true,
+                        "step": false,
+                        "data": EPU_list[1],
+                        "hoverAnimation": true,
+                        "label": {
+                            "show": false,
+                            "position": "top",
+                            "margin": 8
+                        },
+                        "lineStyle": {
+                            "show": true,
+                            "width": 1,
+                            "opacity": 1,
+                            "curveness": 0,
+                            "type": "solid"
+                        },
+                        "areaStyle": {
+                            "opacity": 0
+                        },
+                        "zlevel": 0,
+                        "z": 0
+                    }
+                ],
+                "timeline": {
+                    "axisType": "category",
+                    "orient": "horizontal",
+                    "autoPlay": false,
+                    "controlPosition": "left",
+                    "loop": true,
+                    "rewind": false,
+                    "show": false,
+                    "inverse": false,
+                    "left": "null",
+                    "right": "0",
+                    "top": "20",
+                    "bottom": "20",
+                    "width": "500",
+                    "triggerEvent": true,
+                    "label": {
+                        "show": true,
+                        "position": "top",
+                        "color": "#fff",
+                        "margin": 8
+                    },
+                    "data": country_list
+                },
+                "grid": [
+                    {
+                        "show": false,
+                        "zlevel": 0,
+                        "z": 2,
+                        "left": 50,
+                        "right": 10,
+                        "top": 25,
+                        "bottom": 45,
+                        "containLabel": false,
+                        "backgroundColor": "transparent",
+                        "borderColor": "#ccc",
+                        "borderWidth": 1
+                    }
+                ],
+                "xAxis": [
+                    {
+                        "type": "category",
+                        "show": true,
+                        "scale": false,
+                        "nameLocation": "end",
+                        "nameGap": 15,
+                        "gridIndex": 0,
+                        "inverse": false,
+                        "offset": 0,
+                        "splitNumber": 5,
+                        "minInterval": 0,
+                        "splitLine": {
+                            "show": false,
+                            "lineStyle": {
+                                "show": true,
+                                "width": 1,
+                                "opacity": 1,
+                                "curveness": 0,
+                                "type": "solid"
+                            }
+                        },
+                        "data": EPU_list[epu_china].map(function (item) {
+                            return item[0]
+                        })
+                    }
+                ],
+                "yAxis": [
+                    {
+                        "show": true,
+                        "scale": false,
+                        "nameLocation": "end",
+                        "nameGap": 15,
+                        "gridIndex": 0,
+                        "inverse": false,
+                        "offset": 0,
+                        "splitNumber": 5,
+                        "minInterval": 0,
+                        "splitLine": {
+                            "show": true,
+                            "lineStyle": {
+                                "show": true,
+                                "width": 1,
+                                "opacity": 1,
+                                "curveness": 0,
+                                "type": "solid"
+                            }
+                        }
+                    }
+                ],
+                "dataZoom": [
+                    {
+                        "type": 'slider',
+                        "start": 93,
+                        "end": 100,
+                        "bottom": 0,
+                        "height" : 25
+                    }
+                ]
+            },
+            "options": [
+                {
+                    "legend": [
+                        {
+                            "data": [
+                                china_name
+                            ],
+                            "selected": {
+                                china_name: true
+                            },
+                            "show": true,
+                            "left": "30%",
+                            "top": "5%",
+                            "padding": 0,
+                            "itemGap": 10,
+                            "itemWidth": 25,
+                            "itemHeight": 14
+                        },
+                        {
+                            "data": [
+                                "EPU_ppp"
+                            ],
+                            "selected": {
+                                "EPU_ppp": true
+                            },
+                            "show": true,
+                            "left": "60%",
+                            "top": "5%",
+                            "padding": 0,
+                            "itemGap": 10,
+                            "itemWidth": 25,
+                            "itemHeight": 14
+                        }
+                    ],
+                    "title": [
+                        {
+                            "text": "EPU",
+                            "left": 30,
+                            "top": "0%",
+                            "textStyle": {
+                                fontWeight: 'normal',
+                                fontSize: 12
+                            },
+                            "padding": 5,
+                            "itemGap": 10
+                        }
+                    ],
+                    "tooltip": {
+                        "show": true,
+                        "trigger": "item",
+                        "triggerOn": "mousemove|click",
+                        "axisPointer": {
+                            "type": "line"
+                        },
+                        "showContent": true,
+                        "alwaysShowContent": false,
+                        "showDelay": 0,
+                        "hideDelay": 100,
+                        "textStyle": {
+                            "fontSize": 14
+                        },
+                        "borderWidth": 0,
+                        "padding": 5
+                    },
+                    "color": [
+                        "#c23531",
+                        "#0277fc",
+                        "#61a0a8",
+                        "#d48265",
+                        "#749f83",
+                        "#ca8622",
+                        "#bda29a",
+                        "#6e7074",
+                        "#546570",
+                        "#c4ccd3",
+                        "#f05b72",
+                        "#ef5b9c",
+                        "#f47920",
+                        "#905a3d",
+                        "#fab27b",
+                        "#2a5caa",
+                        "#444693",
+                        "#726930",
+                        "#b2d235",
+                        "#6d8346",
+                        "#ac6767",
+                        "#1d953f",
+                        "#6950a1",
+                        "#918597"
+                    ]
+                }
+            ]
+        };
+        china3.setOption(option_china3);
+
+        var foreign_name = country_list[0]
+        var foreign_data = GDP_list[0]
+        var foreign = echarts.init(document.getElementById('foreign'), 'white', {renderer: 'canvas'});
+        var option_foreign = {
+            "baseOption": {
+                "series": [
+                    {
+                        "type": "line",
+                        "name": foreign_name,
+                        "connectNulls": false,
+                        "xAxisIndex": 0,
+                        "yAxisIndex": 0,
+                        "symbolSize": 4,
+                        "showSymbol": true,
+                        "smooth": false,
+                        "clip": true,
+                        "step": false,
+                        "data": foreign_data,
+                        "hoverAnimation": true,
+                        "label": {
+                            "show": false,
+                            "position": "top",
+                            "margin": 8
+                        },
+                        "lineStyle": {
+                            "show": true,
+                            "width": 1,
+                            "opacity": 1,
+                            "curveness": 0,
+                            "type": "solid"
+                        },
+                        "areaStyle": {
+                            "opacity": 0
+                        },
+                        "zlevel": 0,
+                        "z": 0
+                    }
+                ],
+                "timeline": {
+                    "axisType": "category",
+                    "orient": "horizontal",
+                    "autoPlay": false,
+                    "controlPosition": "left",
+                    "loop": true,
+                    "rewind": false,
+                    "show": false,
+                    "inverse": false,
+                    "left": "null",
+                    "right": "0",
+                    "top": "20",
+                    "bottom": "20",
+                    "width": "500",
+                    "triggerEvent": true,
+                    "label": {
+                        "show": true,
+                        "position": "top",
+                        "color": "#fff",
+                        "margin": 8
+                    },
+                    "data": country_list
+                },
+                "grid": [
+                    {
+                        "show": false,
+                        "zlevel": 0,
+                        "z": 2,
+                        "left": 50,
+                        "right": 10,
+                        "top": 20,
+                        "bottom": 45,
+                        "containLabel": false,
+                        "backgroundColor": "transparent",
+                        "borderColor": "#ccc",
+                        "borderWidth": 1
+                    }
+                ],
+                "xAxis": [
+                    {
+                        "show": true,
+                        "scale": false,
+                        "nameLocation": "end",
+                        "nameGap": 15,
+                        "gridIndex": 0,
+                        "inverse": false,
+                        "offset": 0,
+                        "splitNumber": 5,
+                        "minInterval": 0,
+                        "splitLine": {
+                            "show": false,
+                            "lineStyle": {
+                                "show": true,
+                                "width": 1,
+                                "opacity": 1,
+                                "curveness": 0,
+                                "type": "solid"
+                            }
+                        },
+                        "data": foreign_data.map(function (item) {
+                            return item[0]
+                        })
+                    }
+                ],
+                "yAxis": [
+                    {
+                        "show": true,
+                        "scale": false,
+                        "nameLocation": "end",
+                        "nameGap": 15,
+                        "gridIndex": 0,
+                        "inverse": false,
+                        "offset": 0,
+                        "splitNumber": 5,
+                        "minInterval": 0,
+                        "splitLine": {
+                            "show": true,
+                            "lineStyle": {
+                                "show": true,
+                                "width": 1,
+                                "opacity": 1,
+                                "curveness": 0,
+                                "type": "solid"
+                            }
+                        }
+                    }
+                ],
+                "dataZoom": [
+                    {
+                        "type": 'slider',
+                        "start": 75,
+                        "end": 100,
+                        "bottom": 0,
+                        "height" : 25
+                    }
+                ]
+            },
+            "options": [
+                {
+                    "legend": [
+                        {
+                            "data": [
+                                foreign_name
+                            ],
+                            "selected": {
+                                foreign_name: true
+                            },
+                            "show": true,
+                            "left": "46%",
+                            "top": "0%",
+                            "padding": 0,
+                            "itemGap": 10,
+                            "itemWidth": 25,
+                            "itemHeight": 14
+                        }
+                    ],
+                    "tooltip": {
+                        "show": true,
+                        "trigger": "item",
+                        "triggerOn": "mousemove|click",
+                        "axisPointer": {
+                            "type": "line"
+                        },
+                        "showContent": true,
+                        "alwaysShowContent": false,
+                        "showDelay": 0,
+                        "hideDelay": 100,
+                        "textStyle": {
+                            "fontSize": 14
+                        },
+                        "borderWidth": 0,
+                        "padding": 5
+                    },
+                    "color": [
+                        "#c23531",
+                        "#2f4554",
+                        "#61a0a8",
+                        "#d48265",
+                        "#749f83",
+                        "#ca8622",
+                        "#bda29a",
+                        "#6e7074",
+                        "#546570",
+                        "#c4ccd3",
+                        "#f05b72",
+                        "#ef5b9c",
+                        "#f47920",
+                        "#905a3d",
+                        "#fab27b",
+                        "#2a5caa",
+                        "#444693",
+                        "#726930",
+                        "#b2d235",
+                        "#6d8346",
+                        "#ac6767",
+                        "#1d953f",
+                        "#6950a1",
+                        "#918597"
+                    ]
+                }
+            ]
+        };
+        foreign.setOption(option_foreign);
+
+        var relation_foreign_data = relation_foreign_list[relation_country.indexOf("美国")][0]
+        var foreign2 = echarts.init(document.getElementById('foreign2'), 'white', {renderer: 'canvas'});
+        var option_foreign2 = {
+            "baseOption": {
+                "series": [
+                    {
+                        "type": "bar",
+                        "name": foreign_name,
+                        "data": relation_foreign_data,
+                        "label": {
+                            "show": false,
+                            "position": "top",
+                            "margin": 8
+                        }
+                    }
+                ],
+                "timeline": {
+                    "axisType": "category",
+                    "orient": "horizontal",
+                    "autoPlay": false,
+                    "controlPosition": "left",
+                    "loop": true,
+                    "rewind": false,
+                    "show": false,
+                    "inverse": false,
+                    "left": "null",
+                    "right": "0",
+                    "top": "20",
+                    "bottom": "20",
+                    "width": "500",
+                    "triggerEvent": true,
+                    "label": {
+                        "show": true,
+                        "position": "top",
+                        "color": "#fff",
+                        "margin": 8
+                    },
+                    "data": country_list
+                },
+                "grid": [
+                    {
+                        "show": false,
+                        "zlevel": 0,
+                        "z": 2,
+                        "left": 50,
+                        "right": 10,
+                        "top": 20,
+                        "bottom": 45,
+                        "containLabel": false,
+                        "backgroundColor": "transparent",
+                        "borderColor": "#ccc",
+                        "borderWidth": 1
+                    }
+                ],
+                "xAxis": [
+                    {
+                        "show": true,
+                        "scale": false,
+                        "type": 'category',
+                        "data": [
+                            2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                            2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                        ]
+                    }
+                ],
+                "yAxis": [
+                    {
+                        "show": true,
+                        "scale": false,
+                        "type": 'value'
+                    }
+                ],
+                "dataZoom": [
+                    {
+                        "type": 'slider',
+                        "start": 75,
+                        "end": 100,
+                        "bottom": 0,
+                        "height" : 25
+                    }
+                ]
+            },
+            "options": [
+                {
+                    "tooltip": {
+                        "show": true,
+                        "trigger": "item",
+                        "triggerOn": "mousemove|click",
+                        "axisPointer": {
+                            "type": "line"
+                        },
+                        "showContent": true,
+                        "alwaysShowContent": false,
+                        "showDelay": 0,
+                        "hideDelay": 100,
+                        "textStyle": {
+                            "fontSize": 14
+                        },
+                        "borderWidth": 0,
+                        "padding": 5
+                    },
+                    "color": [
+                        "#c23531",
+                        "#2f4554",
+                        "#61a0a8",
+                        "#d48265",
+                        "#749f83",
+                        "#ca8622",
+                        "#bda29a",
+                        "#6e7074",
+                        "#546570",
+                        "#c4ccd3",
+                        "#f05b72",
+                        "#ef5b9c",
+                        "#f47920",
+                        "#905a3d",
+                        "#fab27b",
+                        "#2a5caa",
+                        "#444693",
+                        "#726930",
+                        "#b2d235",
+                        "#6d8346",
+                        "#ac6767",
+                        "#1d953f",
+                        "#6950a1",
+                        "#918597"
+                    ]
+                }
+            ]
+        };
+        foreign2.setOption(option_foreign2);
+
+        var foreign3 = echarts.init(document.getElementById('foreign3'), 'white', {renderer: 'canvas'});
+        var epu_foreign = EPU_country.indexOf("US")
+        var option_foreign3 = {
+            "baseOption": {
+                "series": [
+                    {
+                        "type": "line",
+                        "name": foreign_name,
+                        "connectNulls": false,
+                        "xAxisIndex": 0,
+                        "yAxisIndex": 0,
+                        "symbolSize": 4,
+                        "showSymbol": true,
+                        "smooth": false,
+                        "clip": true,
+                        "step": false,
+                        "data": EPU_list[epu_foreign],
+                        "hoverAnimation": true,
+                        "label": {
+                            "show": false,
+                            "position": "top",
+                            "margin": 8
+                        },
+                        "lineStyle": {
+                            "show": true,
+                            "width": 1,
+                            "opacity": 1,
+                            "curveness": 0,
+                            "type": "solid"
+                        },
+                        "areaStyle": {
+                            "opacity": 0
+                        },
+                        "zlevel": 0,
+                        "z": 0
+                    },
+                    {
+                        "type": "line",
+                        "name": "EPU_ppp",
+                        "connectNulls": false,
+                        "xAxisIndex": 0,
+                        "yAxisIndex": 0,
+                        "symbolSize": 4,
+                        "showSymbol": true,
+                        "smooth": false,
+                        "clip": true,
+                        "step": false,
+                        "data": EPU_list[1],
+                        "hoverAnimation": true,
+                        "label": {
+                            "show": false,
+                            "position": "top",
+                            "margin": 8
+                        },
+                        "lineStyle": {
+                            "show": true,
+                            "width": 1,
+                            "opacity": 1,
+                            "curveness": 0,
+                            "type": "solid"
+                        },
+                        "areaStyle": {
+                            "opacity": 0
+                        },
+                        "zlevel": 0,
+                        "z": 0
+                    }
+                ],
+                "timeline": {
+                    "axisType": "category",
+                    "orient": "horizontal",
+                    "autoPlay": false,
+                    "controlPosition": "left",
+                    "loop": true,
+                    "rewind": false,
+                    "show": false,
+                    "inverse": false,
+                    "left": "null",
+                    "right": "0",
+                    "top": "20",
+                    "bottom": "20",
+                    "width": "500",
+                    "triggerEvent": true,
+                    "label": {
+                        "show": true,
+                        "position": "top",
+                        "color": "#fff",
+                        "margin": 8
+                    },
+                    "data": country_list
+                },
+                "grid": [
+                    {
+                        "show": false,
+                        "zlevel": 0,
+                        "z": 2,
+                        "left": 50,
+                        "right": 10,
+                        "top": 25,
+                        "bottom": 45,
+                        "containLabel": false,
+                        "backgroundColor": "transparent",
+                        "borderColor": "#ccc",
+                        "borderWidth": 1
+                    }
+                ],
+                "xAxis": [
+                    {
+                        "type": "category",
+                        "show": true,
+                        "scale": false,
+                        "nameLocation": "end",
+                        "nameGap": 15,
+                        "gridIndex": 0,
+                        "inverse": false,
+                        "offset": 0,
+                        "splitNumber": 5,
+                        "minInterval": 0,
+                        "splitLine": {
+                            "show": false,
+                            "lineStyle": {
+                                "show": true,
+                                "width": 1,
+                                "opacity": 1,
+                                "curveness": 0,
+                                "type": "solid"
+                            }
+                        },
+                        "data": EPU_list[epu_foreign].map(function (item) {
+                            return item[0]
+                        })
+                    }
+                ],
+                "yAxis": [
+                    {
+                        "show": true,
+                        "scale": false,
+                        "nameLocation": "end",
+                        "nameGap": 15,
+                        "gridIndex": 0,
+                        "inverse": false,
+                        "offset": 0,
+                        "splitNumber": 5,
+                        "minInterval": 0,
+                        "splitLine": {
+                            "show": true,
+                            "lineStyle": {
+                                "show": true,
+                                "width": 1,
+                                "opacity": 1,
+                                "curveness": 0,
+                                "type": "solid"
+                            }
+                        }
+                    }
+                ],
+                "dataZoom": [
+                    {
+                        "type": 'slider',
+                        "start": 93,
+                        "end": 100,
+                        "bottom": 0,
+                        "height" : 25
+                    }
+                ]
+            },
+            "options": [
+                {
+                    "legend": [
+                        {
+                            "data": [
+                                foreign_name
+                            ],
+                            "selected": {
+                                foreign_name: true
+                            },
+                            "show": true,
+                            "left": "30%",
+                            "top": "5%",
+                            "padding": 0,
+                            "itemGap": 10,
+                            "itemWidth": 25,
+                            "itemHeight": 14
+                        },
+                        {
+                            "data": [
+                                "EPU_ppp"
+                            ],
+                            "selected": {
+                                "EPU_ppp": true
+                            },
+                            "show": true,
+                            "left": "60%",
+                            "top": "5%",
+                            "padding": 0,
+                            "itemGap": 10,
+                            "itemWidth": 25,
+                            "itemHeight": 14
+                        }
+                    ],
+                    "title": [
+                        {
+                            "text": "EPU",
+                            "left": 30,
+                            "top": "0%",
+                            "textStyle": {
+                                fontWeight: 'normal',
+                                fontSize: 12
+                            },
+                            "padding": 5,
+                            "itemGap": 10
+                        }
+                    ],
+                    "tooltip": {
+                        "show": true,
+                        "trigger": "item",
+                        "triggerOn": "mousemove|click",
+                        "axisPointer": {
+                            "type": "line"
+                        },
+                        "showContent": true,
+                        "alwaysShowContent": false,
+                        "showDelay": 0,
+                        "hideDelay": 100,
+                        "textStyle": {
+                            "fontSize": 14
+                        },
+                        "borderWidth": 0,
+                        "padding": 5
+                    },
+                    "color": [
+                        "#c23531",
+                        "#0277fc",
+                        "#61a0a8",
+                        "#d48265",
+                        "#749f83",
+                        "#ca8622",
+                        "#bda29a",
+                        "#6e7074",
+                        "#546570",
+                        "#c4ccd3",
+                        "#f05b72",
+                        "#ef5b9c",
+                        "#f47920",
+                        "#905a3d",
+                        "#fab27b",
+                        "#2a5caa",
+                        "#444693",
+                        "#726930",
+                        "#b2d235",
+                        "#6d8346",
+                        "#ac6767",
+                        "#1d953f",
+                        "#6950a1",
+                        "#918597"
+                    ]
+                }
+            ]
+        };
+        foreign3.setOption(option_foreign3);
+
+        var world = echarts.init(document.getElementById('world'), 'white', {renderer: 'canvas'});
+        var option_world = {
+            "baseOption": {
+                "series": [
+                    {
+                        "type": "map",
+                        "name": "GDP",
+                        "label": {
+                            "show": false,
+                            "position": "top",
+                            "margin": 8
+                        },
+                        "mapType": "world",
+                        "data": [],
+                        "roam": false,
+                        "aspectScale": 0.75,
+                        "nameProperty": "name",
+                        "selectedMode": false,
+                        "zoom": 1,
+                        "layoutCenter": ['50%', '50%'],
+                        "layoutSize": 630,
+                        "nameMap": nameMap,
+                        "mapValueCalculation": "sum",
+                        "showLegendSymbol": false,
+                        "emphasis": {},
+                        "rippleEffect": {
+                            "show": true,
+                            "brushType": "stroke",
+                            "scale": 2.5,
+                            "period": 4
+                        },
+                        "xAxisIndex": 1,
+                        "yAxisIndex": 1
+                    }
+                ],
+                "grid": [
+                    {
+                        "show": false,
+                        "zlevel": 0,
+                        "z": 2,
+                        "left": "10%",
+                        "top": "10%",
+                        "right": "10%",
+                        "bottom": "10%",
+                        "containLabel": false,
+                        "backgroundColor": "transparent",
+                        "borderColor": "#ccc",
+                        "borderWidth": 1
+                    }
+                ]
+            },
+            "options": [
+                {
+                    "legend": [
+                        {
+                            "data": [
+                                ""
+                            ],
+                            "selected": {
+                                "GDP": true
+                            },
+                            "show": true,
+                            "padding": 5,
+                            "itemGap": 10,
+                            "itemWidth": 25,
+                            "itemHeight": 14
+                        }
+                    ],
+                    "tooltip": {
+                        "show": true,
+                        "trigger": "item",
+                        "triggerOn": "mousemove|click",
+                        "axisPointer": {
+                            "type": "line"
+                        },
+                        "showContent": true,
+                        "alwaysShowContent": false,
+                        "showDelay": 0,
+                        "hideDelay": 100,
+                        "textStyle": {
+                            "fontSize": 14
+                        },
+                        "borderWidth": 0,
+                        "padding": 5
+                    },
+                    "color": [
+                        "#c23531",
+                        "#2f4554",
+                        "#61a0a8",
+                        "#d48265",
+                        "#749f83",
+                        "#ca8622",
+                        "#bda29a",
+                        "#6e7074",
+                        "#546570",
+                        "#c4ccd3",
+                        "#f05b72",
+                        "#ef5b9c",
+                        "#f47920",
+                        "#905a3d",
+                        "#fab27b",
+                        "#2a5caa",
+                        "#444693",
+                        "#726930",
+                        "#b2d235",
+                        "#6d8346",
+                        "#ac6767",
+                        "#1d953f",
+                        "#6950a1",
+                        "#918597"
+                    ]
+                }
+            ]
+        };
+        world.setOption(option_world);
+
+        function setDetail(option) {
+            var options = [];
+            for (var i = 0; i <= country_list.length; i++) {
+                var country = country_list[i]
+                var detail = {
+                    "legend": [
+                        {
+                            "data": [
+                                country
+                            ],
+                            "selected": {
+                                country: true
+                            },
+                            "show": true,
+                            "left": "46%",
+                            "top": "0%",
+                            "padding": 0,
+                            "itemGap": 10,
+                            "itemWidth": 25,
+                            "itemHeight": 14
+                        }
+                    ],
+                    "tooltip": {
+                        "show": true,
+                        "trigger": "item",
+                        "triggerOn": "mousemove|click",
+                        "axisPointer": {
+                            "type": "line"
+                        },
+                        "showContent": true,
+                        "alwaysShowContent": false,
+                        "showDelay": 0,
+                        "hideDelay": 100,
+                        "textStyle": {
+                            "fontSize": 14
+                        },
+                        "borderWidth": 0,
+                        "padding": 5
+                    },
+                    "color": [
+                        "#c23531",
+                        "#2f4554",
+                        "#61a0a8",
+                        "#d48265",
+                        "#749f83",
+                        "#ca8622",
+                        "#bda29a",
+                        "#6e7074",
+                        "#546570",
+                        "#c4ccd3",
+                        "#f05b72",
+                        "#ef5b9c",
+                        "#f47920",
+                        "#905a3d",
+                        "#fab27b",
+                        "#2a5caa",
+                        "#444693",
+                        "#726930",
+                        "#b2d235",
+                        "#6d8346",
+                        "#ac6767",
+                        "#1d953f",
+                        "#6950a1",
+                        "#918597"
+                    ]
+                };
+                options.push(detail);
+            }
+            option.options = options;
+        }
+
+        function setDetail2(option) {
+            var options = [];
+            for (var i = 0; i <= country_list.length; i++) {
+                var country = country_list[i]
+                //设置具体的样式
+                var detail = {
+                    "tooltip": {
+                        "show": true,
+                        "trigger": "item",
+                        "triggerOn": "mousemove|click",
+                        "axisPointer": {
+                            "type": "line"
+                        },
+                        "showContent": true,
+                        "alwaysShowContent": false,
+                        "showDelay": 0,
+                        "hideDelay": 100,
+                        "textStyle": {
+                            "fontSize": 14
+                        },
+                        "borderWidth": 0,
+                        "padding": 5
+                    },
+                    "color": [
+                        "#c23531",
+                        "#2f4554",
+                        "#61a0a8",
+                        "#d48265",
+                        "#749f83",
+                        "#ca8622",
+                        "#bda29a",
+                        "#6e7074",
+                        "#546570",
+                        "#c4ccd3",
+                        "#f05b72",
+                        "#ef5b9c",
+                        "#f47920",
+                        "#905a3d",
+                        "#fab27b",
+                        "#2a5caa",
+                        "#444693",
+                        "#726930",
+                        "#b2d235",
+                        "#6d8346",
+                        "#ac6767",
+                        "#1d953f",
+                        "#6950a1",
+                        "#918597"
+                    ]
+                };
+                options.push(detail);
+            }
+            option.options = options;
+        }
+
+        var index = 0
+        var selected = "美国"
+        world.on('click', function(param) {
+            selected = param.name
+            $('#search').val(selected);
+            index = country_list.indexOf(selected)
+            $.ajax({
+                url : "/select_Country_with_type/",
+                type : "POST",
+                data : {
+                    'id': index + 1,
+                    'type': document.getElementById("select_line").innerText
+                },
+                success: function (result) {
+                    var obj = jQuery.parseJSON(result)
+                    if(obj.error) {
+                        alert(obj.error)
+                        return false;
+                    }
+                    var country = obj.country
+                    var data = obj.foreign_data
+
+                    var foreign = echarts.init(document.getElementById('foreign'), 'white', {renderer: 'canvas'});
+                    var option = {
+                        "baseOption": {
+                            "series": [
+                                {
+                                    "type": "line",
+                                    "name": country,
+                                    "connectNulls": false,
+                                    "xAxisIndex": 0,
+                                    "yAxisIndex": 0,
+                                    "symbolSize": 4,
+                                    "showSymbol": true,
+                                    "smooth": false,
+                                    "clip": true,
+                                    "step": false,
+                                    "data": data,
+                                    "hoverAnimation": true,
+                                    "label": {
+                                        "show": false,
+                                        "position": "top",
+                                        "margin": 8
+                                    },
+                                    "lineStyle": {
+                                        "show": true,
+                                        "width": 1,
+                                        "opacity": 1,
+                                        "curveness": 0,
+                                        "type": "solid"
+                                    },
+                                    "areaStyle": {
+                                        "opacity": 0
+                                    },
+                                    "zlevel": 0,
+                                    "z": 0
+                                }
+                            ],
+                            "timeline": {
+                                "axisType": "category",
+                                "orient": "horizontal",
+                                "autoPlay": false,
+                                "controlPosition": "left",
+                                "loop": true,
+                                "rewind": false,
+                                "show": false,
+                                "inverse": false,
+                                "currentIndex": index,
+                                "left": "null",
+                                "right": "0",
+                                "top": "20",
+                                "bottom": "20",
+                                "width": "500",
+                                "triggerEvent": true,
+                                "label": {
+                                    "show": true,
+                                    "position": "top",
+                                    "color": "#fff",
+                                    "margin": 8
+                                },
+                                "data": country_list
+                            },
+                            "grid": [
+                                {
+                                    "show": false,
+                                    "zlevel": 0,
+                                    "z": 2,
+                                    "left": 50,
+                                    "right": 10,
+                                    "top": 20,
+                                    "bottom": 45,
+                                    "containLabel": false,
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#ccc",
+                                    "borderWidth": 1
+                                }
+                            ],
+                            "xAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "nameLocation": "end",
+                                    "nameGap": 15,
+                                    "gridIndex": 0,
+                                    "inverse": false,
+                                    "offset": 0,
+                                    "splitNumber": 5,
+                                    "minInterval": 0,
+                                    "splitLine": {
+                                        "show": false,
+                                        "lineStyle": {
+                                            "show": true,
+                                            "width": 1,
+                                            "opacity": 1,
+                                            "curveness": 0,
+                                            "type": "solid"
+                                        }
+                                    },
+                                    "data": data.map(function (item) {
+                                        return item[0]
+                                    })
+                                }
+                            ],
+                            "yAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "nameLocation": "end",
+                                    "nameGap": 15,
+                                    "gridIndex": 0,
+                                    "inverse": false,
+                                    "offset": 0,
+                                    "splitNumber": 5,
+                                    "minInterval": 0,
+                                    "splitLine": {
+                                        "show": true,
+                                        "lineStyle": {
+                                            "show": true,
+                                            "width": 1,
+                                            "opacity": 1,
+                                            "curveness": 0,
+                                            "type": "solid"
+                                        }
+                                    }
+                                }
+                            ],
+                            "dataZoom": [
+                                {
+                                    "type": 'slider',
+                                    "start": 75,
+                                    "end": 100,
+                                    "bottom": 0,
+                                    "height" : 25
+                                }
+                            ]
+                        },
+                        "options": []
+                    };
+                    setDetail(option);
+
+                    foreign.setOption(option);
+                    foreign.resize();
+                }
+            });
+            $.ajax({
+                url : "/select_Country_with_relation/",
+                type : "POST",
+                data : {
+                    'name': selected,
+                    'relation': document.getElementById("select_line3").innerText
+                },
+                success: function (result) {
+                    var obj = jQuery.parseJSON(result)
+                    var china2 = echarts.init(document.getElementById('china2'), 'white', {renderer: 'canvas'});
+                    var option_china2 = {
+                        "baseOption": {
+                            "series": [
+                                {
+                                    "type": "bar",
+                                    "name": china_name,
+                                    "data": obj.china_data,
+                                    "label": {
+                                        "show": false,
+                                        "position": "top",
+                                        "margin": 8
+                                    }
+                                }
+                            ],
+                            "timeline": {
+                                "axisType": "category",
+                                "orient": "horizontal",
+                                "autoPlay": false,
+                                "controlPosition": "left",
+                                "loop": true,
+                                "rewind": false,
+                                "show": false,
+                                "inverse": false,
+                                "left": "null",
+                                "right": "0",
+                                "top": "20",
+                                "bottom": "20",
+                                "width": "500",
+                                "triggerEvent": true,
+                                "label": {
+                                    "show": true,
+                                    "position": "top",
+                                    "color": "#fff",
+                                    "margin": 8
+                                },
+                                "data": country_list
+                            },
+                            "grid": [
+                                {
+                                    "show": false,
+                                    "zlevel": 0,
+                                    "z": 2,
+                                    "left": 50,
+                                    "right": 10,
+                                    "top": 20,
+                                    "bottom": 45,
+                                    "containLabel": false,
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#ccc",
+                                    "borderWidth": 1
+                                }
+                            ],
+                            "xAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "type": 'category',
+                                    "data": [
+                                        2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                                        2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                                    ]
+                                }
+                            ],
+                            "yAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "type": 'value'
+                                }
+                            ],
+                            "dataZoom": [
+                                {
+                                    "type": 'slider',
+                                    "start": 75,
+                                    "end": 100,
+                                    "bottom": 0,
+                                    "height" : 25
+                                }
+                            ]
+                        },
+                        "options": [
+                            {
+                                "tooltip": {
+                                    "show": true,
+                                    "trigger": "item",
+                                    "triggerOn": "mousemove|click",
+                                    "axisPointer": {
+                                        "type": "line"
+                                    },
+                                    "showContent": true,
+                                    "alwaysShowContent": false,
+                                    "showDelay": 0,
+                                    "hideDelay": 100,
+                                    "textStyle": {
+                                        "fontSize": 14
+                                    },
+                                    "borderWidth": 0,
+                                    "padding": 5
+                                },
+                                "color": [
+                                    "#c23531",
+                                    "#2f4554",
+                                    "#61a0a8",
+                                    "#d48265",
+                                    "#749f83",
+                                    "#ca8622",
+                                    "#bda29a",
+                                    "#6e7074",
+                                    "#546570",
+                                    "#c4ccd3",
+                                    "#f05b72",
+                                    "#ef5b9c",
+                                    "#f47920",
+                                    "#905a3d",
+                                    "#fab27b",
+                                    "#2a5caa",
+                                    "#444693",
+                                    "#726930",
+                                    "#b2d235",
+                                    "#6d8346",
+                                    "#ac6767",
+                                    "#1d953f",
+                                    "#6950a1",
+                                    "#918597"
+                                ]
+                            }
+                        ]
+                    };
+                    china2.setOption(option_china2);
+                    china2.resize();
+
+                    var foreign2 = echarts.init(document.getElementById('foreign2'), 'white', {renderer: 'canvas'});
+                    var option_foreign2 = {
+                        "baseOption": {
+                            "series": [
+                                {
+                                    "type": "bar",
+                                    "name": selected,
+                                    "data": obj.foreign_data,
+                                    "label": {
+                                        "show": false,
+                                        "position": "top",
+                                        "margin": 8
+                                    }
+                                }
+                            ],
+                            "timeline": {
+                                "axisType": "category",
+                                "orient": "horizontal",
+                                "autoPlay": false,
+                                "controlPosition": "left",
+                                "loop": true,
+                                "rewind": false,
+                                "show": false,
+                                "inverse": false,
+                                "left": "null",
+                                "right": "0",
+                                "top": "20",
+                                "bottom": "20",
+                                "width": "500",
+                                "triggerEvent": true,
+                                "label": {
+                                    "show": true,
+                                    "position": "top",
+                                    "color": "#fff",
+                                    "margin": 8
+                                },
+                                "data": country_list
+                            },
+                            "grid": [
+                                {
+                                    "show": false,
+                                    "zlevel": 0,
+                                    "z": 2,
+                                    "left": 50,
+                                    "right": 10,
+                                    "top": 20,
+                                    "bottom": 45,
+                                    "containLabel": false,
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#ccc",
+                                    "borderWidth": 1
+                                }
+                            ],
+                            "xAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "type": 'category',
+                                    "data": [
+                                        2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                                        2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                                    ]
+                                }
+                            ],
+                            "yAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "type": 'value'
+                                }
+                            ],
+                            "dataZoom": [
+                                {
+                                    "type": 'slider',
+                                    "start": 75,
+                                    "end": 100,
+                                    "bottom": 0,
+                                    "height" : 25
+                                }
+                            ]
+                        },
+                        "options": []
+                    };
+                    setDetail2(option_foreign2);
+
+                    foreign2.setOption(option_foreign2);
+                    foreign2.resize();
+                }
+            });
+            $.ajax({
+                url : "/select_Country/",
+                type : "POST",
+                data : {
+                    'id': index + 1
+                },
+                success: function (result) {
+                    var obj = jQuery.parseJSON(result)
+                    if(obj.error) {
+                        return false;
+                    }
+                    var country_name = findKey(nameMap, selected)
+                    if(country_name === "United States") country_name = "US"
+                    if(country_name === "United Kingdom") country_name = "UK"
+                    var epu_index = EPU_country.indexOf(country_name)
+                    var foreign3 = echarts.init(document.getElementById('foreign3'), 'white', {renderer: 'canvas'});
+                    var option3 = {
+                        "baseOption": {
+                            "series": [
+                                {
+                                    "type": "line",
+                                    "name": selected,
+                                    "connectNulls": false,
+                                    "xAxisIndex": 0,
+                                    "yAxisIndex": 0,
+                                    "symbolSize": 4,
+                                    "showSymbol": true,
+                                    "smooth": false,
+                                    "clip": true,
+                                    "step": false,
+                                    "data": EPU_list[epu_index],
+                                    "hoverAnimation": true,
+                                    "label": {
+                                        "show": false,
+                                        "position": "top",
+                                        "margin": 8
+                                    },
+                                    "lineStyle": {
+                                        "show": true,
+                                        "width": 1,
+                                        "opacity": 1,
+                                        "curveness": 0,
+                                        "type": "solid"
+                                    },
+                                    "areaStyle": {
+                                        "opacity": 0
+                                    },
+                                    "zlevel": 0,
+                                    "z": 0
+                                },
+                                {
+                                    "type": "line",
+                                    "name": "EPU_ppp",
+                                    "connectNulls": false,
+                                    "xAxisIndex": 0,
+                                    "yAxisIndex": 0,
+                                    "symbolSize": 4,
+                                    "showSymbol": true,
+                                    "smooth": false,
+                                    "clip": true,
+                                    "step": false,
+                                    "data": EPU_list[1],
+                                    "hoverAnimation": true,
+                                    "label": {
+                                        "show": false,
+                                        "position": "top",
+                                        "margin": 8
+                                    },
+                                    "lineStyle": {
+                                        "show": true,
+                                        "width": 1,
+                                        "opacity": 1,
+                                        "curveness": 0,
+                                        "type": "solid"
+                                    },
+                                    "areaStyle": {
+                                        "opacity": 0
+                                    },
+                                    "zlevel": 0,
+                                    "z": 0
+                                }
+                            ],
+                            "timeline": {
+                                "axisType": "category",
+                                "orient": "horizontal",
+                                "autoPlay": false,
+                                "controlPosition": "left",
+                                "loop": true,
+                                "rewind": false,
+                                "show": false,
+                                "inverse": false,
+                                "left": "null",
+                                "right": "0",
+                                "top": "20",
+                                "bottom": "20",
+                                "width": "500",
+                                "triggerEvent": true,
+                                "label": {
+                                    "show": true,
+                                    "position": "top",
+                                    "color": "#fff",
+                                    "margin": 8
+                                },
+                                "data": country_list
+                            },
+                            "grid": [
+                                {
+                                    "show": false,
+                                    "zlevel": 0,
+                                    "z": 2,
+                                    "left": 50,
+                                    "right": 10,
+                                    "top": 25,
+                                    "bottom": 45,
+                                    "containLabel": false,
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#ccc",
+                                    "borderWidth": 1
+                                }
+                            ],
+                            "xAxis": [
+                                {
+                                    "type": "category",
+                                    "show": true,
+                                    "scale": false,
+                                    "nameLocation": "end",
+                                    "nameGap": 15,
+                                    "gridIndex": 0,
+                                    "inverse": false,
+                                    "offset": 0,
+                                    "splitNumber": 5,
+                                    "minInterval": 0,
+                                    "splitLine": {
+                                        "show": false,
+                                        "lineStyle": {
+                                            "show": true,
+                                            "width": 1,
+                                            "opacity": 1,
+                                            "curveness": 0,
+                                            "type": "solid"
+                                        }
+                                    },
+                                    "data": EPU_list[epu_index].map(function (item) {
+                                        return item[0]
+                                    })
+                                }
+                            ],
+                            "yAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "nameLocation": "end",
+                                    "nameGap": 15,
+                                    "gridIndex": 0,
+                                    "inverse": false,
+                                    "offset": 0,
+                                    "splitNumber": 5,
+                                    "minInterval": 0,
+                                    "splitLine": {
+                                        "show": true,
+                                        "lineStyle": {
+                                            "show": true,
+                                            "width": 1,
+                                            "opacity": 1,
+                                            "curveness": 0,
+                                            "type": "solid"
+                                        }
+                                    }
+                                }
+                            ],
+                            "dataZoom": [
+                                {
+                                    "type": 'slider',
+                                    "start": 93,
+                                    "end": 100,
+                                    "bottom": 0,
+                                    "height" : 25
+                                }
+                            ]
+                        },
+                        "options": [
+                            {
+                                "legend": [
+                                    {
+                                        "data": [
+                                            selected
+                                        ],
+                                        "selected": {
+                                            selected: true
+                                        },
+                                        "show": true,
+                                        "left": "30%",
+                                        "top": "5%",
+                                        "padding": 0,
+                                        "itemGap": 10,
+                                        "itemWidth": 25,
+                                        "itemHeight": 14
+                                    },
+                                    {
+                                        "data": [
+                                            "EPU_ppp"
+                                        ],
+                                        "selected": {
+                                            "EPU_ppp": true
+                                        },
+                                        "show": true,
+                                        "left": "60%",
+                                        "top": "5%",
+                                        "padding": 0,
+                                        "itemGap": 10,
+                                        "itemWidth": 25,
+                                        "itemHeight": 14
+                                    }
+                                ],
+                                "title": [
+                                    {
+                                        "text": "EPU",
+                                        "left": 30,
+                                        "top": "0%",
+                                        "textStyle": {
+                                            fontWeight: 'normal',
+                                            fontSize: 12
+                                        },
+                                        "padding": 5,
+                                        "itemGap": 10
+                                    }
+                                ],
+                                "tooltip": {
+                                    "show": true,
+                                    "trigger": "item",
+                                    "triggerOn": "mousemove|click",
+                                    "axisPointer": {
+                                        "type": "line"
+                                    },
+                                    "showContent": true,
+                                    "alwaysShowContent": false,
+                                    "showDelay": 0,
+                                    "hideDelay": 100,
+                                    "textStyle": {
+                                        "fontSize": 14
+                                    },
+                                    "borderWidth": 0,
+                                    "padding": 5
+                                },
+                                "color": [
+                                    "#c23531",
+                                    "#0277fc",
+                                    "#61a0a8",
+                                    "#d48265",
+                                    "#749f83",
+                                    "#ca8622",
+                                    "#bda29a",
+                                    "#6e7074",
+                                    "#546570",
+                                    "#c4ccd3",
+                                    "#f05b72",
+                                    "#ef5b9c",
+                                    "#f47920",
+                                    "#905a3d",
+                                    "#fab27b",
+                                    "#2a5caa",
+                                    "#444693",
+                                    "#726930",
+                                    "#b2d235",
+                                    "#6d8346",
+                                    "#ac6767",
+                                    "#1d953f",
+                                    "#6950a1",
+                                    "#918597"
+                                ]
+                            }
+                        ]
+                    };
+                    foreign3.setOption(option3);
+                    foreign3.resize();
+                }
+            });
+        });
+
+        $('#search_bt').on('click', function () {
+            selected = $('#search').val()
+            index = country_list.indexOf(selected)
+            $.ajax({
+                url : "/select_Country_with_type/",
+                type : "POST",
+                data : {
+                    'id': index + 1,
+                    'type': document.getElementById("select_line").innerText
+                },
+                success: function (result) {
+                    var obj = jQuery.parseJSON(result)
+                    if(obj.error) {
+                        alert(obj.error)
+                        return false;
+                    }
+                    var country = obj.country
+                    var data = obj.foreign_data
+
+                    var foreign = echarts.init(document.getElementById('foreign'), 'white', {renderer: 'canvas'});
+                    var option = {
+                        "baseOption": {
+                            "series": [
+                                {
+                                    "type": "line",
+                                    "name": country,
+                                    "connectNulls": false,
+                                    "xAxisIndex": 0,
+                                    "yAxisIndex": 0,
+                                    "symbolSize": 4,
+                                    "showSymbol": true,
+                                    "smooth": false,
+                                    "clip": true,
+                                    "step": false,
+                                    "data": data,
+                                    "hoverAnimation": true,
+                                    "label": {
+                                        "show": false,
+                                        "position": "top",
+                                        "margin": 8
+                                    },
+                                    "lineStyle": {
+                                        "show": true,
+                                        "width": 1,
+                                        "opacity": 1,
+                                        "curveness": 0,
+                                        "type": "solid"
+                                    },
+                                    "areaStyle": {
+                                        "opacity": 0
+                                    },
+                                    "zlevel": 0,
+                                    "z": 0
+                                }
+                            ],
+                            "timeline": {
+                                "axisType": "category",
+                                "orient": "horizontal",
+                                "autoPlay": false,
+                                "controlPosition": "left",
+                                "loop": true,
+                                "rewind": false,
+                                "show": false,
+                                "inverse": false,
+                                "currentIndex": index,
+                                "left": "null",
+                                "right": "0",
+                                "top": "20",
+                                "bottom": "20",
+                                "width": "500",
+                                "triggerEvent": true,
+                                "label": {
+                                    "show": true,
+                                    "position": "top",
+                                    "color": "#fff",
+                                    "margin": 8
+                                },
+                                "data": country_list
+                            },
+                            "grid": [
+                                {
+                                    "show": false,
+                                    "zlevel": 0,
+                                    "z": 2,
+                                    "left": 50,
+                                    "right": 10,
+                                    "top": 20,
+                                    "bottom": 45,
+                                    "containLabel": false,
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#ccc",
+                                    "borderWidth": 1
+                                }
+                            ],
+                            "xAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "nameLocation": "end",
+                                    "nameGap": 15,
+                                    "gridIndex": 0,
+                                    "inverse": false,
+                                    "offset": 0,
+                                    "splitNumber": 5,
+                                    "minInterval": 0,
+                                    "splitLine": {
+                                        "show": false,
+                                        "lineStyle": {
+                                            "show": true,
+                                            "width": 1,
+                                            "opacity": 1,
+                                            "curveness": 0,
+                                            "type": "solid"
+                                        }
+                                    },
+                                    "data": data.map(function (item) {
+                                        return item[0]
+                                    })
+                                }
+                            ],
+                            "yAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "nameLocation": "end",
+                                    "nameGap": 15,
+                                    "gridIndex": 0,
+                                    "inverse": false,
+                                    "offset": 0,
+                                    "splitNumber": 5,
+                                    "minInterval": 0,
+                                    "splitLine": {
+                                        "show": true,
+                                        "lineStyle": {
+                                            "show": true,
+                                            "width": 1,
+                                            "opacity": 1,
+                                            "curveness": 0,
+                                            "type": "solid"
+                                        }
+                                    }
+                                }
+                            ],
+                            "dataZoom": [
+                                {
+                                    "type": 'slider',
+                                    "start": 75,
+                                    "end": 100,
+                                    "bottom": 0,
+                                    "height" : 25
+                                }
+                            ]
+                        },
+                        "options": []
+                    };
+                    setDetail(option);
+
+                    foreign.setOption(option);
+                    foreign.resize();
+                }
+            });
+            $.ajax({
+                url : "/select_Country_with_relation/",
+                type : "POST",
+                data : {
+                    'name': selected,
+                    'relation': document.getElementById("select_line3").innerText
+                },
+                success: function (result) {
+                    var obj = jQuery.parseJSON(result)
+                    var china2 = echarts.init(document.getElementById('china2'), 'white', {renderer: 'canvas'});
+                    var option_china2 = {
+                        "baseOption": {
+                            "series": [
+                                {
+                                    "type": "bar",
+                                    "name": china_name,
+                                    "data": obj.china_data,
+                                    "label": {
+                                        "show": false,
+                                        "position": "top",
+                                        "margin": 8
+                                    }
+                                }
+                            ],
+                            "timeline": {
+                                "axisType": "category",
+                                "orient": "horizontal",
+                                "autoPlay": false,
+                                "controlPosition": "left",
+                                "loop": true,
+                                "rewind": false,
+                                "show": false,
+                                "inverse": false,
+                                "left": "null",
+                                "right": "0",
+                                "top": "20",
+                                "bottom": "20",
+                                "width": "500",
+                                "triggerEvent": true,
+                                "label": {
+                                    "show": true,
+                                    "position": "top",
+                                    "color": "#fff",
+                                    "margin": 8
+                                },
+                                "data": country_list
+                            },
+                            "grid": [
+                                {
+                                    "show": false,
+                                    "zlevel": 0,
+                                    "z": 2,
+                                    "left": 50,
+                                    "right": 10,
+                                    "top": 20,
+                                    "bottom": 45,
+                                    "containLabel": false,
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#ccc",
+                                    "borderWidth": 1
+                                }
+                            ],
+                            "xAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "type": 'category',
+                                    "data": [
+                                        2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                                        2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                                    ]
+                                }
+                            ],
+                            "yAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "type": 'value'
+                                }
+                            ],
+                            "dataZoom": [
+                                {
+                                    "type": 'slider',
+                                    "start": 75,
+                                    "end": 100,
+                                    "bottom": 0,
+                                    "height" : 25
+                                }
+                            ]
+                        },
+                        "options": [
+                            {
+                                "tooltip": {
+                                    "show": true,
+                                    "trigger": "item",
+                                    "triggerOn": "mousemove|click",
+                                    "axisPointer": {
+                                        "type": "line"
+                                    },
+                                    "showContent": true,
+                                    "alwaysShowContent": false,
+                                    "showDelay": 0,
+                                    "hideDelay": 100,
+                                    "textStyle": {
+                                        "fontSize": 14
+                                    },
+                                    "borderWidth": 0,
+                                    "padding": 5
+                                },
+                                "color": [
+                                    "#c23531",
+                                    "#2f4554",
+                                    "#61a0a8",
+                                    "#d48265",
+                                    "#749f83",
+                                    "#ca8622",
+                                    "#bda29a",
+                                    "#6e7074",
+                                    "#546570",
+                                    "#c4ccd3",
+                                    "#f05b72",
+                                    "#ef5b9c",
+                                    "#f47920",
+                                    "#905a3d",
+                                    "#fab27b",
+                                    "#2a5caa",
+                                    "#444693",
+                                    "#726930",
+                                    "#b2d235",
+                                    "#6d8346",
+                                    "#ac6767",
+                                    "#1d953f",
+                                    "#6950a1",
+                                    "#918597"
+                                ]
+                            }
+                        ]
+                    };
+                    china2.setOption(option_china2);
+                    china2.resize();
+
+                    var foreign2 = echarts.init(document.getElementById('foreign2'), 'white', {renderer: 'canvas'});
+                    var option_foreign2 = {
+                        "baseOption": {
+                            "series": [
+                                {
+                                    "type": "bar",
+                                    "name": selected,
+                                    "data": obj.foreign_data,
+                                    "label": {
+                                        "show": false,
+                                        "position": "top",
+                                        "margin": 8
+                                    }
+                                }
+                            ],
+                            "timeline": {
+                                "axisType": "category",
+                                "orient": "horizontal",
+                                "autoPlay": false,
+                                "controlPosition": "left",
+                                "loop": true,
+                                "rewind": false,
+                                "show": false,
+                                "inverse": false,
+                                "left": "null",
+                                "right": "0",
+                                "top": "20",
+                                "bottom": "20",
+                                "width": "500",
+                                "triggerEvent": true,
+                                "label": {
+                                    "show": true,
+                                    "position": "top",
+                                    "color": "#fff",
+                                    "margin": 8
+                                },
+                                "data": country_list
+                            },
+                            "grid": [
+                                {
+                                    "show": false,
+                                    "zlevel": 0,
+                                    "z": 2,
+                                    "left": 50,
+                                    "right": 10,
+                                    "top": 20,
+                                    "bottom": 45,
+                                    "containLabel": false,
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#ccc",
+                                    "borderWidth": 1
+                                }
+                            ],
+                            "xAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "type": 'category',
+                                    "data": [
+                                        2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                                        2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                                    ]
+                                }
+                            ],
+                            "yAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "type": 'value'
+                                }
+                            ],
+                            "dataZoom": [
+                                {
+                                    "type": 'slider',
+                                    "start": 75,
+                                    "end": 100,
+                                    "bottom": 0,
+                                    "height" : 25
+                                }
+                            ]
+                        },
+                        "options": []
+                    };
+                    setDetail2(option_foreign2);
+
+                    foreign2.setOption(option_foreign2);
+                    foreign2.resize();
+                }
+            });
+            $.ajax({
+                url : "/select_Country/",
+                type : "POST",
+                data : {
+                    'id': index + 1
+                },
+                success: function (result) {
+                    var obj = jQuery.parseJSON(result)
+                    if(obj.error) {
+                        return false;
+                    }
+                    var country_name = findKey(nameMap, selected)
+                    if(country_name === "United States") country_name = "US"
+                    if(country_name === "United Kingdom") country_name = "UK"
+                    var epu_index = EPU_country.indexOf(country_name)
+                    var foreign3 = echarts.init(document.getElementById('foreign3'), 'white', {renderer: 'canvas'});
+                    var option3 = {
+                        "baseOption": {
+                            "series": [
+                                {
+                                    "type": "line",
+                                    "name": selected,
+                                    "connectNulls": false,
+                                    "xAxisIndex": 0,
+                                    "yAxisIndex": 0,
+                                    "symbolSize": 4,
+                                    "showSymbol": true,
+                                    "smooth": false,
+                                    "clip": true,
+                                    "step": false,
+                                    "data": EPU_list[epu_index],
+                                    "hoverAnimation": true,
+                                    "label": {
+                                        "show": false,
+                                        "position": "top",
+                                        "margin": 8
+                                    },
+                                    "lineStyle": {
+                                        "show": true,
+                                        "width": 1,
+                                        "opacity": 1,
+                                        "curveness": 0,
+                                        "type": "solid"
+                                    },
+                                    "areaStyle": {
+                                        "opacity": 0
+                                    },
+                                    "zlevel": 0,
+                                    "z": 0
+                                },
+                                {
+                                    "type": "line",
+                                    "name": "EPU_ppp",
+                                    "connectNulls": false,
+                                    "xAxisIndex": 0,
+                                    "yAxisIndex": 0,
+                                    "symbolSize": 4,
+                                    "showSymbol": true,
+                                    "smooth": false,
+                                    "clip": true,
+                                    "step": false,
+                                    "data": EPU_list[1],
+                                    "hoverAnimation": true,
+                                    "label": {
+                                        "show": false,
+                                        "position": "top",
+                                        "margin": 8
+                                    },
+                                    "lineStyle": {
+                                        "show": true,
+                                        "width": 1,
+                                        "opacity": 1,
+                                        "curveness": 0,
+                                        "type": "solid"
+                                    },
+                                    "areaStyle": {
+                                        "opacity": 0
+                                    },
+                                    "zlevel": 0,
+                                    "z": 0
+                                }
+                            ],
+                            "timeline": {
+                                "axisType": "category",
+                                "orient": "horizontal",
+                                "autoPlay": false,
+                                "controlPosition": "left",
+                                "loop": true,
+                                "rewind": false,
+                                "show": false,
+                                "inverse": false,
+                                "left": "null",
+                                "right": "0",
+                                "top": "20",
+                                "bottom": "20",
+                                "width": "500",
+                                "triggerEvent": true,
+                                "label": {
+                                    "show": true,
+                                    "position": "top",
+                                    "color": "#fff",
+                                    "margin": 8
+                                },
+                                "data": country_list
+                            },
+                            "grid": [
+                                {
+                                    "show": false,
+                                    "zlevel": 0,
+                                    "z": 2,
+                                    "left": 50,
+                                    "right": 10,
+                                    "top": 25,
+                                    "bottom": 45,
+                                    "containLabel": false,
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#ccc",
+                                    "borderWidth": 1
+                                }
+                            ],
+                            "xAxis": [
+                                {
+                                    "type": "category",
+                                    "show": true,
+                                    "scale": false,
+                                    "nameLocation": "end",
+                                    "nameGap": 15,
+                                    "gridIndex": 0,
+                                    "inverse": false,
+                                    "offset": 0,
+                                    "splitNumber": 5,
+                                    "minInterval": 0,
+                                    "splitLine": {
+                                        "show": false,
+                                        "lineStyle": {
+                                            "show": true,
+                                            "width": 1,
+                                            "opacity": 1,
+                                            "curveness": 0,
+                                            "type": "solid"
+                                        }
+                                    },
+                                    "data": EPU_list[epu_index].map(function (item) {
+                                        return item[0]
+                                    })
+                                }
+                            ],
+                            "yAxis": [
+                                {
+                                    "show": true,
+                                    "scale": false,
+                                    "nameLocation": "end",
+                                    "nameGap": 15,
+                                    "gridIndex": 0,
+                                    "inverse": false,
+                                    "offset": 0,
+                                    "splitNumber": 5,
+                                    "minInterval": 0,
+                                    "splitLine": {
+                                        "show": true,
+                                        "lineStyle": {
+                                            "show": true,
+                                            "width": 1,
+                                            "opacity": 1,
+                                            "curveness": 0,
+                                            "type": "solid"
+                                        }
+                                    }
+                                }
+                            ],
+                            "dataZoom": [
+                                {
+                                    "type": 'slider',
+                                    "start": 93,
+                                    "end": 100,
+                                    "bottom": 0,
+                                    "height" : 25
+                                }
+                            ]
+                        },
+                        "options": [
+                            {
+                                "legend": [
+                                    {
+                                        "data": [
+                                            selected
+                                        ],
+                                        "selected": {
+                                            selected: true
+                                        },
+                                        "show": true,
+                                        "left": "30%",
+                                        "top": "5%",
+                                        "padding": 0,
+                                        "itemGap": 10,
+                                        "itemWidth": 25,
+                                        "itemHeight": 14
+                                    },
+                                    {
+                                        "data": [
+                                            "EPU_ppp"
+                                        ],
+                                        "selected": {
+                                            "EPU_ppp": true
+                                        },
+                                        "show": true,
+                                        "left": "60%",
+                                        "top": "5%",
+                                        "padding": 0,
+                                        "itemGap": 10,
+                                        "itemWidth": 25,
+                                        "itemHeight": 14
+                                    }
+                                ],
+                                "title": [
+                                    {
+                                        "text": "EPU",
+                                        "left": 30,
+                                        "top": "0%",
+                                        "textStyle": {
+                                            fontWeight: 'normal',
+                                            fontSize: 12
+                                        },
+                                        "padding": 5,
+                                        "itemGap": 10
+                                    }
+                                ],
+                                "tooltip": {
+                                    "show": true,
+                                    "trigger": "item",
+                                    "triggerOn": "mousemove|click",
+                                    "axisPointer": {
+                                        "type": "line"
+                                    },
+                                    "showContent": true,
+                                    "alwaysShowContent": false,
+                                    "showDelay": 0,
+                                    "hideDelay": 100,
+                                    "textStyle": {
+                                        "fontSize": 14
+                                    },
+                                    "borderWidth": 0,
+                                    "padding": 5
+                                },
+                                "color": [
+                                    "#c23531",
+                                    "#0277fc",
+                                    "#61a0a8",
+                                    "#d48265",
+                                    "#749f83",
+                                    "#ca8622",
+                                    "#bda29a",
+                                    "#6e7074",
+                                    "#546570",
+                                    "#c4ccd3",
+                                    "#f05b72",
+                                    "#ef5b9c",
+                                    "#f47920",
+                                    "#905a3d",
+                                    "#fab27b",
+                                    "#2a5caa",
+                                    "#444693",
+                                    "#726930",
+                                    "#b2d235",
+                                    "#6d8346",
+                                    "#ac6767",
+                                    "#1d953f",
+                                    "#6950a1",
+                                    "#918597"
+                                ]
+                            }
+                        ]
+                    };
+                    foreign3.setOption(option3);
+                    foreign3.resize();
+                }
+            });
+        })
+
+        layui.use(['dropdown'], function() {
+            var dropdown = layui.dropdown;
+            dropdown.render({
+                elem: '#select_line0',
+                trigger: 'mousedown',
+                data: [
+                    {
+                        id: '../',
+                        title: '总览',
+                    }, {
+                        id: '../map1',
+                        title: '宏观经济数据',
+                    }, {
+                        id: '../map2',
+                        title: '政策波动性',
+                    }, {
+                        id: '../map3D',
+                        title: '国家关联关系',
+                    }, {
+                        id: '../aid',
+                        title: '对外援助',
+                    }
+                ],
+                click: function(param) {
+                    window.location.href = param.id;
+                }
+            });
+        });
+
+        layui.use(['dropdown'], function() {
+            var dropdown = layui.dropdown;
+            dropdown.render({
+                elem: '#select_line',
+                trigger: 'mousedown',
+                data: [
+                    {
+                        title: '国民账户',
+                        child: [{
+                            id: 'GDP(亿美元)',
+                            title: 'GDP(亿美元)'
+                        }, {
+                            id: 'GDP增长率(%)',
+                            title: 'GDP增长率(%)'
+                        }, {
+                            id: '人均GDP(美元)',
+                            title: '人均GDP(美元)'
+                        }, {
+                            id: '总投资占比(%)',
+                            title: '总投资占比(%)'
+                        }]
+                    }, {
+                        title: '货币',
+                        child: [{
+                            id: '通货膨胀率(%)',
+                            title: '通货膨胀率(%)'
+                        }]
+                    }, {
+                        title: '贸易',
+                        child: [{
+                            id: '货物和服务进口量(%)',
+                            title: '货物和服务进口量(%)'
+                        }, {
+                            id: '货物和服务出口量(%)',
+                            title: '货物和服务出口量(%)'
+                        }]
+                    }, {
+                        title: '人口',
+                        child: [{
+                            id: '失业率(%)',
+                            title: '失业率(%)'
+                        }, {
+                            id: '人口(百万)',
+                            title: '人口(百万)'
+                        }]
+                    }, {
+                        title: '政府财政',
+                        child: [{
+                            id: '政府收入占比(%)',
+                            title: '政府收入占比(%)'
+                        }, {
+                            id: '政府支出占比(%)',
+                            title: '政府支出占比(%)'
+                        }]
+                    }
+                ],
+                click: function(param) {
+                    document.getElementById("select_line").innerHTML = param.title + '<i class="layui-icon layui-icon-down layui-font-12"></i>';
+                    document.getElementById("select_line2").innerHTML = param.title;
+                    $.ajax({
+                        url : "/select_Country_with_type/",
+                        type : "POST",
+                        data : {
+                            'id': index + 1,
+                            'type': param.id
+                        },
+                        success: function (result) {  //获取后台处理后传过来的result
+                            var obj = jQuery.parseJSON(result)
+                            if(obj.error) {
+                                alert(obj.error)
+                                return false;
+                            }
+                            var country = obj.country
+                            var china_data = obj.china_data
+                            var foreign_data = obj.foreign_data
+                            var china = echarts.init(document.getElementById('china'), 'white', {renderer: 'canvas'});
+                            var option_china = {
+                                "baseOption": {
+                                    "series": [
+                                        {
+                                            "type": "line",
+                                            "name": country_list[1],
+                                            "connectNulls": false,
+                                            "xAxisIndex": 0,
+                                            "yAxisIndex": 0,
+                                            "symbolSize": 4,
+                                            "showSymbol": true,
+                                            "smooth": false,
+                                            "clip": true,
+                                            "step": false,
+                                            "data": china_data,
+                                            "hoverAnimation": true,
+                                            "label": {
+                                                "show": false,
+                                                "position": "top",
+                                                "margin": 8
+                                            },
+                                            "lineStyle": {
+                                                "show": true,
+                                                "width": 1,
+                                                "opacity": 1,
+                                                "curveness": 0,
+                                                "type": "solid"
+                                            },
+                                            "areaStyle": {
+                                                "opacity": 0
+                                            },
+                                            "zlevel": 0,
+                                            "z": 0
+                                        }
+                                    ],
+                                    "timeline": {
+                                        "axisType": "category",
+                                        "orient": "horizontal",
+                                        "autoPlay": false,
+                                        "controlPosition": "left",
+                                        "loop": true,
+                                        "rewind": false,
+                                        "show": false,
+                                        "inverse": false,
+                                        "left": "null",
+                                        "right": "0",
+                                        "top": "20",
+                                        "bottom": "20",
+                                        "width": "500",
+                                        "triggerEvent": true,
+                                        "label": {
+                                            "show": true,
+                                            "position": "top",
+                                            "color": "#fff",
+                                            "margin": 8
+                                        },
+                                        "data": country_list
+                                    },
+                                    "grid": [
+                                        {
+                                            "show": false,
+                                            "zlevel": 0,
+                                            "z": 2,
+                                            "left": 50,
+                                            "right": 10,
+                                            "top": 20,
+                                            "bottom": 45,
+                                            "containLabel": false,
+                                            "backgroundColor": "transparent",
+                                            "borderColor": "#ccc",
+                                            "borderWidth": 1
+                                        }
+                                    ],
+                                    "xAxis": [
+                                        {
+                                            "show": true,
+                                            "scale": false,
+                                            "nameLocation": "end",
+                                            "nameGap": 15,
+                                            "gridIndex": 0,
+                                            "inverse": false,
+                                            "offset": 0,
+                                            "splitNumber": 5,
+                                            "minInterval": 0,
+                                            "splitLine": {
+                                                "show": false,
+                                                "lineStyle": {
+                                                    "show": true,
+                                                    "width": 1,
+                                                    "opacity": 1,
+                                                    "curveness": 0,
+                                                    "type": "solid"
+                                                }
+                                            },
+                                            "data": china_data.map(function (item) {
+                                                return item[0]
+                                            })
+                                        }
+                                    ],
+                                    "yAxis": [
+                                        {
+                                            "show": true,
+                                            "scale": false,
+                                            "nameLocation": "end",
+                                            "nameGap": 15,
+                                            "gridIndex": 0,
+                                            "inverse": false,
+                                            "offset": 0,
+                                            "splitNumber": 5,
+                                            "minInterval": 0,
+                                            "splitLine": {
+                                                "show": true,
+                                                "lineStyle": {
+                                                    "show": true,
+                                                    "width": 1,
+                                                    "opacity": 1,
+                                                    "curveness": 0,
+                                                    "type": "solid"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "dataZoom": [
+                                        {
+                                            "type": 'slider',
+                                            "start": 75,
+                                            "end": 100,
+                                            "bottom": 0,
+                                            "height" : 25
+                                        }
+                                    ]
+                                },
+                                "options": [
+                                    {
+                                        "legend": [
+                                            {
+                                                "data": [
+                                                    china_name
+                                                ],
+                                                "selected": {
+                                                    china_name: true
+                                                },
+                                                "show": true,
+                                                "left": "46%",
+                                                "top": "0%",
+                                                "padding": 0,
+                                                "itemGap": 10,
+                                                "itemWidth": 25,
+                                                "itemHeight": 14
+                                            }
+                                        ],
+                                        "tooltip": {
+                                            "show": true,
+                                            "trigger": "item",
+                                            "triggerOn": "mousemove|click",
+                                            "axisPointer": {
+                                                "type": "line"
+                                            },
+                                            "showContent": true,
+                                            "alwaysShowContent": false,
+                                            "showDelay": 0,
+                                            "hideDelay": 100,
+                                            "textStyle": {
+                                                "fontSize": 14
+                                            },
+                                            "borderWidth": 0,
+                                            "padding": 5
+                                        },
+                                        "color": [
+                                            "#c23531",
+                                            "#2f4554",
+                                            "#61a0a8",
+                                            "#d48265",
+                                            "#749f83",
+                                            "#ca8622",
+                                            "#bda29a",
+                                            "#6e7074",
+                                            "#546570",
+                                            "#c4ccd3",
+                                            "#f05b72",
+                                            "#ef5b9c",
+                                            "#f47920",
+                                            "#905a3d",
+                                            "#fab27b",
+                                            "#2a5caa",
+                                            "#444693",
+                                            "#726930",
+                                            "#b2d235",
+                                            "#6d8346",
+                                            "#ac6767",
+                                            "#1d953f",
+                                            "#6950a1",
+                                            "#918597"
+                                        ]
+                                    }
+                                ]
+                            };
+                            china.setOption(option_china);
+
+                            var foreign = echarts.init(document.getElementById('foreign'), 'white', {renderer: 'canvas'});
+                            var foreign_option = {
+                                "baseOption": {
+                                    "series": [
+                                        {
+                                            "type": "line",
+                                            "name": country,
+                                            "connectNulls": false,
+                                            "xAxisIndex": 0,
+                                            "yAxisIndex": 0,
+                                            "symbolSize": 4,
+                                            "showSymbol": true,
+                                            "smooth": false,
+                                            "clip": true,
+                                            "step": false,
+                                            "data": foreign_data,
+                                            "hoverAnimation": true,
+                                            "label": {
+                                                "show": false,
+                                                "position": "top",
+                                                "margin": 8
+                                            },
+                                            "lineStyle": {
+                                                "show": true,
+                                                "width": 1,
+                                                "opacity": 1,
+                                                "curveness": 0,
+                                                "type": "solid"
+                                            },
+                                            "areaStyle": {
+                                                "opacity": 0
+                                            },
+                                            "zlevel": 0,
+                                            "z": 0
+                                        }
+                                    ],
+                                    "timeline": {
+                                        "axisType": "category",
+                                        "orient": "horizontal",
+                                        "autoPlay": false,
+                                        "controlPosition": "left",
+                                        "loop": true,
+                                        "rewind": false,
+                                        "show": false,
+                                        "inverse": false,
+                                        "left": "null",
+                                        "right": "0",
+                                        "top": "20",
+                                        "bottom": "20",
+                                        "width": "500",
+                                        "triggerEvent": true,
+                                        "label": {
+                                            "show": true,
+                                            "position": "top",
+                                            "color": "#fff",
+                                            "margin": 8
+                                        },
+                                        "data": country_list
+                                    },
+                                    "grid": [
+                                        {
+                                            "show": false,
+                                            "zlevel": 0,
+                                            "z": 2,
+                                            "left": 50,
+                                            "right": 10,
+                                            "top": 20,
+                                            "bottom": 45,
+                                            "containLabel": false,
+                                            "backgroundColor": "transparent",
+                                            "borderColor": "#ccc",
+                                            "borderWidth": 1
+                                        }
+                                    ],
+                                    "xAxis": [
+                                        {
+                                            "show": true,
+                                            "scale": false,
+                                            "nameLocation": "end",
+                                            "nameGap": 15,
+                                            "gridIndex": 0,
+                                            "inverse": false,
+                                            "offset": 0,
+                                            "splitNumber": 5,
+                                            "minInterval": 0,
+                                            "splitLine": {
+                                                "show": false,
+                                                "lineStyle": {
+                                                    "show": true,
+                                                    "width": 1,
+                                                    "opacity": 1,
+                                                    "curveness": 0,
+                                                    "type": "solid"
+                                                }
+                                            },
+                                            "data": foreign_data.map(function (item) {
+                                                return item[0]
+                                            })
+                                        }
+                                    ],
+                                    "yAxis": [
+                                        {
+                                            "show": true,
+                                            "scale": false,
+                                            "nameLocation": "end",
+                                            "nameGap": 15,
+                                            "gridIndex": 0,
+                                            "inverse": false,
+                                            "offset": 0,
+                                            "splitNumber": 5,
+                                            "minInterval": 0,
+                                            "splitLine": {
+                                                "show": true,
+                                                "lineStyle": {
+                                                    "show": true,
+                                                    "width": 1,
+                                                    "opacity": 1,
+                                                    "curveness": 0,
+                                                    "type": "solid"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "dataZoom": [
+                                        {
+                                            "type": 'slider',
+                                            "start": 75,
+                                            "end": 100,
+                                            "bottom": 0,
+                                            "height" : 25
+                                        }
+                                    ]
+                                },
+                                "options": []
+                            };
+                            setDetail(foreign_option);
+                            foreign.setOption(foreign_option);
+                            foreign.resize();
+                        }
+                    });
+                }
+            });
+        });
+
+        layui.use(['dropdown'], function() {
+            var dropdown = layui.dropdown;
+            dropdown.render({
+                elem: '#select_line3',
+                trigger: 'mousedown',
+                data: [
+                    {
+                        title: '贸易',
+                        child: [{
+                            id: '对目标国出口额占总出口额比重(%)',
+                            title: '对目标国出口额占总出口额比重(%)'
+                        }, {
+                            id: '对目标国进口额占总进口额比重(%)',
+                            title: '对目标国进口额占总进口额比重(%)'
+                        }]
+                    }, {
+                        title: '投资',
+                            child: [{
+                            id: '对目标国直接投资占GDP比重(%)',
+                            title: '对目标国直接投资占GDP比重(%)'
+                        }, {
+                            id: '目标国直接投资占GDP比重(%)',
+                            title: '目标国直接投资占GDP比重(%)'
+                        }]
+                    }
+                ],
+                click: function(param) {
+                    document.getElementById("select_line3").innerHTML = param.title + '<i class="layui-icon layui-icon-down layui-font-12"></i>';
+                    document.getElementById("select_line4").innerHTML = param.title;
+                    $.ajax({
+                        url : "/select_Country_with_relation/",
+                        type : "POST",
+                        data : {
+                            'name': selected,
+                            'relation': param.id
+                        },
+                        success: function (result) {  //获取后台处理后传过来的result
+                            var obj = jQuery.parseJSON(result)
+                            var china_data = obj.china_data
+                            var foreign_data = obj.foreign_data
+                            var china2 = echarts.init(document.getElementById('china2'), 'white', {renderer: 'canvas'});
+                            var option_china2 = {
+                                "baseOption": {
+                                    "series": [
+                                        {
+                                            "type": "bar",
+                                            "name": china_name,
+                                            "data": china_data,
+                                            "label": {
+                                                "show": false,
+                                                "position": "top",
+                                                "margin": 8
+                                            }
+                                        }
+                                    ],
+                                    "timeline": {
+                                        "axisType": "category",
+                                        "orient": "horizontal",
+                                        "autoPlay": false,
+                                        "controlPosition": "left",
+                                        "loop": true,
+                                        "rewind": false,
+                                        "show": false,
+                                        "inverse": false,
+                                        "left": "null",
+                                        "right": "0",
+                                        "top": "20",
+                                        "bottom": "20",
+                                        "width": "500",
+                                        "triggerEvent": true,
+                                        "label": {
+                                            "show": true,
+                                            "position": "top",
+                                            "color": "#fff",
+                                            "margin": 8
+                                        },
+                                        "data": country_list
+                                    },
+                                    "grid": [
+                                        {
+                                            "show": false,
+                                            "zlevel": 0,
+                                            "z": 2,
+                                            "left": 50,
+                                            "right": 10,
+                                            "top": 20,
+                                            "bottom": 45,
+                                            "containLabel": false,
+                                            "backgroundColor": "transparent",
+                                            "borderColor": "#ccc",
+                                            "borderWidth": 1
+                                        }
+                                    ],
+                                    "xAxis": [
+                                        {
+                                            "show": true,
+                                            "scale": false,
+                                            "type": 'category',
+                                            "data": [
+                                                2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                                                2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                                            ]
+                                        }
+                                    ],
+                                    "yAxis": [
+                                        {
+                                            "show": true,
+                                            "scale": false,
+                                            "type": 'value'
+                                        }
+                                    ],
+                                    "dataZoom": [
+                                        {
+                                            "type": 'slider',
+                                            "start": 75,
+                                            "end": 100,
+                                            "bottom": 0,
+                                            "height" : 25
+                                        }
+                                    ]
+                                },
+                                "options": [
+                                    {
+                                        "tooltip": {
+                                            "show": true,
+                                            "trigger": "item",
+                                            "triggerOn": "mousemove|click",
+                                            "axisPointer": {
+                                                "type": "line"
+                                            },
+                                            "showContent": true,
+                                            "alwaysShowContent": false,
+                                            "showDelay": 0,
+                                            "hideDelay": 100,
+                                            "textStyle": {
+                                                "fontSize": 14
+                                            },
+                                            "borderWidth": 0,
+                                            "padding": 5
+                                        },
+                                        "color": [
+                                            "#c23531",
+                                            "#2f4554",
+                                            "#61a0a8",
+                                            "#d48265",
+                                            "#749f83",
+                                            "#ca8622",
+                                            "#bda29a",
+                                            "#6e7074",
+                                            "#546570",
+                                            "#c4ccd3",
+                                            "#f05b72",
+                                            "#ef5b9c",
+                                            "#f47920",
+                                            "#905a3d",
+                                            "#fab27b",
+                                            "#2a5caa",
+                                            "#444693",
+                                            "#726930",
+                                            "#b2d235",
+                                            "#6d8346",
+                                            "#ac6767",
+                                            "#1d953f",
+                                            "#6950a1",
+                                            "#918597"
+                                        ]
+                                    }
+                                ]
+                            };
+                            china2.setOption(option_china2);
+                            china2.resize();
+
+                            var foreign2 = echarts.init(document.getElementById('foreign2'), 'white', {renderer: 'canvas'});
+                            var foreign_option2 = {
+                                "baseOption": {
+                                    "series": [
+                                        {
+                                            "type": "bar",
+                                            "name": selected,
+                                            "data": foreign_data,
+                                            "label": {
+                                                "show": false,
+                                                "position": "top",
+                                                "margin": 8
+                                            }
+                                        }
+                                    ],
+                                    "timeline": {
+                                        "axisType": "category",
+                                        "orient": "horizontal",
+                                        "autoPlay": false,
+                                        "controlPosition": "left",
+                                        "loop": true,
+                                        "rewind": false,
+                                        "show": false,
+                                        "inverse": false,
+                                        "left": "null",
+                                        "right": "0",
+                                        "top": "20",
+                                        "bottom": "20",
+                                        "width": "500",
+                                        "triggerEvent": true,
+                                        "label": {
+                                            "show": true,
+                                            "position": "top",
+                                            "color": "#fff",
+                                            "margin": 8
+                                        },
+                                        "data": country_list
+                                    },
+                                    "grid": [
+                                        {
+                                            "show": false,
+                                            "zlevel": 0,
+                                            "z": 2,
+                                            "left": 50,
+                                            "right": 10,
+                                            "top": 20,
+                                            "bottom": 45,
+                                            "containLabel": false,
+                                            "backgroundColor": "transparent",
+                                            "borderColor": "#ccc",
+                                            "borderWidth": 1
+                                        }
+                                    ],
+                                    "xAxis": [
+                                        {
+                                            "show": true,
+                                            "scale": false,
+                                            "type": 'category',
+                                            "data": [
+                                                2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                                                2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+                                            ]
+                                        }
+                                    ],
+                                    "yAxis": [
+                                        {
+                                            "show": true,
+                                            "scale": false,
+                                            "type": 'value'
+                                        }
+                                    ],
+                                    "dataZoom": [
+                                        {
+                                            "type": 'slider',
+                                            "start": 75,
+                                            "end": 100,
+                                            "bottom": 0,
+                                            "height" : 25
+                                        }
+                                    ]
+                                },
+                                "options": []
+                            };
+                            setDetail2(foreign_option2);
+                            foreign2.setOption(foreign_option2);
+                            foreign2.resize();
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#tune').on('click', function () {
+            $.ajax({
+                type: 'POST',
+                url: "/tune/",
+                data: {
+                    'tune0': $('#tune0').val(),
+                    'tune1': $('#tune1').val(),
+                    'tune2': $('#tune2').val(),
+                    'tune3': $('#tune3').val(),
+                    'tune4': $('#tune4').val(),
+                    'tune5': $('#tune5').val()
+                },
+                success:function(result){
+                    var obj = jQuery.parseJSON(result)
+                    document.getElementById("output1").value = obj.output1;
+                    document.getElementById("output2").value = obj.output2;
+                }
+            });
+        })
+
+        $(function () {
+            var upEach=$('.layui-icon-up')
+            for(var i=0; i<upEach.length; i++) {
+                $('#up' + i).bind("click", {index:i}, upHandler)
+            };
+            function upHandler(obj) {
+                var i=obj.data.index
+                $('#tune' + i).attr("value", (Number($('#tune' + i).val()) + 0.01).toFixed(2))
+            }
+
+            var downEach=$('.layui-icon-down')
+            for(var i=0; i<downEach.length; i++) {
+                $('#down' + i).bind("click", {index:i}, downHandler)
+            };
+            function downHandler(obj) {
+                var i=obj.data.index
+                $('#tune' + i).attr("value", (Number($('#tune' + i).val()) - 0.01).toFixed(2))
+            }
+        });
+    </script>
+    <script>
+	     //窗口大小变化时候，进行刷新页面操作，防止样式混乱
+         var x=window.innerWidth;
+         function resizeFresh(){
+             if(x!==window.innerWidth)
+                 location.reload();
+         }
+	</script>
+</body>
+</html>
